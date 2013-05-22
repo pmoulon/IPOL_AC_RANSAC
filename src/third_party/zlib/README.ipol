@@ -1,0 +1,9 @@
+Project: zlib
+URL: http://www.zlib.net/
+License: zlib license
+Upstream version: 1.2.5
+Local modifications: 
+
+* Removed all files, except for *.c, *.h and license-relevant.
+* Modified CMake files in order to not install and not build examples.
+* Added install rule to CMakeLists.txt

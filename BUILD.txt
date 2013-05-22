@@ -1,0 +1,61 @@
+Instructions to build and run the orsa_homography demo.
+
+# BUILD
+This project relies on CMake[1] system to build and test the code.
+
+LINUX/MAC :
+  go to OrsaHomography directory.
+  $ cd .../OrsaHomography
+  $ mkdir Build
+  $ cd Build
+  $ cmake -D CMAKE_BUILD_TYPE:string=Release ../src
+  $ make
+  $ make test
+
+  If you target to use an IDE to compile the code :
+  $ cmake -G "CodeBlocks - Unix Makefiles" ../src
+
+WINDOWS :
+  Launch cmake-gui.exe
+  
+  Fill the blank path.
+  "Where is the source code :" (where the general CMakeLists.txt is).
+    => OrsaHomography/src
+  "Where to build the binaries:" (where build project and object files will be).
+    => OrsaHomography/build
+    
+  Press Configure. (Select your IDE. ie, Visual Studio 10 Win64)
+  Press Generate.
+  Go to the OrsaHomography/build path.
+  Launch the Visual Studio solution and compile in release mode.
+
+[1] CMake is a the cross-platform, open-source build system.
+CMake is a family of tools designed to build, test and package software.
+CMake is used to control the software compilation process using simple 
+platform and compiler independent configuration files.
+CMake generates native makefiles and workspaces that can be used in the
+ compiler environment of your choice.
+http://cmake.org
+
+# USAGE
+Go to the build folder. The executable is in the "demo" subfolder.
+Usage: demo_orsa_homography [-c|--cut geom] [-p|--prec precision] [-s|--sift siftRatio] imgInA imgInB allMatches.txt orsaMatches.txt [imgInliers imgOutliers [imgMosaic [imgMosaicA imgMosaicB]]
+- -c,--cut geom: is the cut region of imgInA: wxh+x+y
+     = rectangle of corners (x,y) and (x+w,y+h)
+- -p,--prec precision: max precision (in pixels) of registration (0=arbitrary)
+- -s,--sift siftRatio: SIFT distance ratio of descriptors (default: 0.6)
+- imgInA, imgInB: the two input image (JPG or PNG format)
+- allMatches.txt: output text file of the form "x1 y1 x2 y2"
+- orsaMatches.txt: same, but only with inliers.
+- imgInliers (optional): output image showing inliers
+- imgOutliers (optional): output image showing outliers and their error
+- imgMosaic (optional): output mosaic blending the two input images.
+- imgMosaicA, imgMosaicB (optional): output warped image
+
+# EXAMPLE
+Example data are in folder 'data'.
+- Try it:
+ demo_orsa_homography carc1.jpg carc2.jpg all.txt in.txt in.jpg out.jpg pano.jpg
+- Compare image 'pano.jpg' with reference image 'carc12.jpg'
+- Look at inliers 'in.jpg' and outliers 'out.jpg'
+- Increase the SIFT ratio to increase outliers with option '-s 0.8'

@@ -1,0 +1,38 @@
+This software and associated source code are LGPLv3-licenced (license_LGPL.txt).
+
+The source code files in this directory implement as tightly as possible
+algorithms described in the IPOL article :
+"Automatic homographic registration of a pair of images, with a contrario elimination of outliers".
+They are made available as scientific tools enabling the verification of the
+soundness and completeness of the algorithm descriptions.
+
+These source codes implement the SIFT algorithms possibly linked to the patent 
+[1]. Compiling or running this code may violate patents in certain countries.
+For this reason, the use of the source files "src/extras/sift/*"
+may be restricted in certain countries to non profit research and non profit 
+educational purposes. In certain countries, redistribution or commercial 
+use of these source files may require the consent of the patent owner. 
+
+->Licensing per directory
+
+	src/demo               <- LGPLv3 (license_LGPL.txt)
+	src/libOrsa            <- LGPLv3
+	src/extras/libNumerics <- LGPLv3
+	src/extras/libLWImage  <- Simplified BSD license (license_BSD.txt)
+	src/extras/libMatch    <- Simplified BSD license
+	src/libOrsa/numeric    <- Simplified BSD license
+	src/testing            <- Simplified BSD license
+	src/extras/sift        <- SUBJECT TO PATENT [1]
+
+	src/third_party <- libraries subject to their own licence.
+	License and code repository are explained in README.ipol files.
+
+Implementations of the model estimator and unit tests are modified variant
+of LIBMV [2] open source project that target clear implementation of
+computer vision algorithm.
+
+[1] David Lowe  "Method and apparatus for identifying scale invariant 
+features in an image and use of same for locating an object in an 
+image",  U.S. Patent 6,711,293.
+
+[2] http://code.google.com/p/libmv/
