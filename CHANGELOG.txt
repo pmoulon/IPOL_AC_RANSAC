@@ -1,0 +1,3 @@
+2013-05-22:
+- Restore default SIFT parameters.
+- Avoid exact 0 residual in the NFA computation (fix for identity transformation like Im1==Im2).
