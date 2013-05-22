@@ -1,8 +1,8 @@
-// WARNING: 
+// WARNING:
 // This file implements an algorithm possibly linked to the patent
 //
-// David Lowe  "Method and apparatus for identifying scale invariant 
-// features in an image and use of same for locating an object in an 
+// David Lowe  "Method and apparatus for identifying scale invariant
+// features in an image and use of same for locating an object in an
 // image",  U.S. Patent 6,711,293.
 //
 // This file is made available for the exclusive aim of serving as
@@ -46,15 +46,15 @@ typedef LWImage<float> flimage;
 
 void default_sift_parameters(siftPar &par)
 {
-	par.OctaveMax=3;
+  par.OctaveMax = 3;
 	par.DoubleImSize = 1;
 	par.order = 7;
 	par.InitSigma = 1.6f;
-	par.BorderDist = 5; /*15 by Zhongwei*/
+	par.BorderDist = 5;
 	par.Scales = 3;
-	par.PeakThresh = 255.0f * 0.06f / 3.0f;
-	par.EdgeThresh = 0.14f /*0.06*/ /*0.14*/; /* 0.14 by Zhongwei*/
-	par.EdgeThresh1 = 0.16f /*0.08*/ /*0.16*/; /* 0.16 by Zhongwei*/
+	par.PeakThresh = 255.0f * 0.04f / 3.0f;
+	par.EdgeThresh = 0.06f;
+	par.EdgeThresh1 = 0.08f;
 	par.OriBins  = 36;
 	par.OriSigma = 1.5;
 	par.OriHistThresh = 0.8f;
@@ -72,7 +72,7 @@ void default_sift_parameters(siftPar &par)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// SIFT Keypoint detection 
+/// SIFT Keypoint detection
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -97,7 +97,7 @@ void AssignOriHist(
 
 void SmoothHistogram(
 	float* hist, int bins);
-	
+
 float InterpPeak(
 	float a, float b, float c);
 
@@ -108,14 +108,14 @@ void MakeKeypoint(
 void MakeKeypointSample(
 	keypoint& key, const flimage& grad,
 	float scale, float row, float col,siftPar &par);
-	
+
 void NormalizeVec(
 	float* vec);
-	
+
 void KeySampleVec(
 	keypoint& key, const flimage& grad,
 	float scale, float row, float col,siftPar &par);
-	
+
 void KeySample(
 	float index[IndexSize][IndexSize][OriSize], keypoint& key,
 	const flimage& grad,
@@ -145,8 +145,8 @@ void compute_sift_keypoints(float *input, keypointslist& keys, int width, int he
 	} else
         image = alloc_image( make_image(input,width,height) );
 
-    /// Apply initial smoothing to input image to raise its smoothing to par.InitSigma.  
-    /// We assume image from camera has smoothing of sigma = 0.5, which becomes sigma = 1.0 if image has been doubled. 
+    /// Apply initial smoothing to input image to raise its smoothing to par.InitSigma.
+    /// We assume image from camera has smoothing of sigma = 0.5, which becomes sigma = 1.0 if image has been doubled.
     /// increase = sqrt(Init^2 - Current^2)
     float curSigma=0.5f;
     if (par.DoubleImSize) curSigma *= 2.0f;
@@ -157,8 +157,8 @@ void compute_sift_keypoints(float *input, keypointslist& keys, int width, int he
 		gaussian_convolution(image.data, image.data, image.w, image.h, sigma);
 	}
 
-	/// Convolve by par.InitSigma at each step inside OctaveKeypoints by steps of 
-	/// Subsample of factor 2 while reasonable image size 
+	/// Convolve by par.InitSigma at each step inside OctaveKeypoints by steps of
+	/// Subsample of factor 2 while reasonable image size
 
 	/// Keep reducing image by factors of 2 until one dimension is
 	/// smaller than minimum size at which a feature could be detected.
@@ -218,7 +218,7 @@ void OctaveKeypoints(flimage & image, float octSize, keypointslist& keys,siftPar
         blur[i] = alloc_image<float>(image.w, image.h);
     for(int i=0; i < 3; i++)
         dogs[i] = alloc_image<float>(image.w, image.h);
-    
+
     int iDog = 0;
     for(int i=1; i < par.Scales+3; i++) {
 		if (DEBUG) printf("Convolving scale: %d \n", i);
@@ -229,10 +229,10 @@ void OctaveKeypoints(flimage & image, float octSize, keypointslist& keys,siftPar
 		gaussian_convolution(blur[j-1].data, blur[j].data, blur[j].w, blur[j].h,
                              sigma);
 		prevSigma *= sigmaRatio;
-        
+
 		/// dogs[i] = dogs[i] - blur[i+1]
 		combine(blur[j-1].data,1.0f, blur[j].data,-1.0f,
-                dogs[iDog].data, dogs[iDog].w*dogs[iDog].h); 
+                dogs[iDog].data, dogs[iDog].w*dogs[iDog].h);
         if(iDog < 2)
             ++iDog;
         else {
@@ -251,7 +251,7 @@ void OctaveKeypoints(flimage & image, float octSize, keypointslist& keys,siftPar
 	delete [] blur;
 	delete [] dogs;
 }
-	
+
 
 /////////////////////////////////////////////////
 ///Find the local maxima and minima of the DOG images in scale space.  Return the keypoints for these locations.
@@ -283,20 +283,20 @@ void FindMaxMin(const flimage* dogs,  const flimage& blur, int s,
         map.data[i]=false;
     for(int i=grad.sizeBuffer()-1; i>=0; i--)
         grad.data[i]=0.0f;
-	
+
     /* For each intermediate image, compute gradient and orientation
     images to be used for keypoint description.  */
     compute_gradient_orientation(blur.data, grad.data, blur.w, blur.h);
-	
+
     /* Only find peaks at least par.BorderDist samples from image border, as
     peaks centered close to the border will lack stability. */
     assert(par.BorderDist >= 2);
     float val;
     int partialcounter = 0;
-    for (int r = par.BorderDist; r < height - par.BorderDist; r++) 
+    for (int r = par.BorderDist; r < height - par.BorderDist; r++)
         for (int c = par.BorderDist; c < width - par.BorderDist; c++) {
             /* Pixel value at (c,r) position. */
-            val = *dogs[1].pixel(c,r);	
+            val = *dogs[1].pixel(c,r);
 
             /* DOG magnitude must be above 0.8 * par.PeakThresh threshold
             (precise threshold check will be done once peak
@@ -312,7 +312,7 @@ void FindMaxMin(const flimage* dogs,  const flimage& blur, int s,
                     partialcounter++;
                     if (DEBUG) printf("%d:  (%d,%d,%d)  val: %f\n",partialcounter, s,r,c,val);
                     InterpKeyPoint(dogs, s, r, c, grad,
-                                   map, octSize, keys, 5,par);	
+                                   map, octSize, keys, 5,par);
                 }
             }
 		}
@@ -350,8 +350,8 @@ bool LocalMaxMin(float val, const flimage& dog, int y0, int x0)
    many points.  It requires that the ratio of the two principle
    curvatures of the DOG function at this point be below a threshold.
 
-   Edge threshold is higher on the first scale where SNR is small in 
-   order to reduce the number of unstable keypoints. 
+   Edge threshold is higher on the first scale where SNR is small in
+   order to reduce the number of unstable keypoints.
 */
 int NotOnEdge(const flimage& dog, int r, int c, float octSize,siftPar &par)
 {
@@ -362,15 +362,15 @@ int NotOnEdge(const flimage& dog, int r, int c, float octSize,siftPar &par)
 
 	/* Compute determinant and trace of the Hessian. */
 	float	det = H00 * H11 - H01 * H01,	/// Det H = \prod l_i
-		trace = H00 + H11;		/// tr H = \sum l_i	
+		trace = H00 + H11;		/// tr H = \sum l_i
 
 	/// As we do not desire edges but only corners we demand l_max / l_min less than a threshold
 	/// In practice if A = k B,     A*B = k B^2
 	///				(A + B)^2 = (k+1)^2 * B^2
 	///				k B^2 >  t * (k+1)^2 * B^2 sii   k  / (k+1)^2 > t
 	/// This is a decreasing function for k > 1 and value 0.3 at k=1.
-	/// Setting t = 0.08, means k<=10 
-	 
+	/// Setting t = 0.08, means k<=10
+
 	/* To detect an edge response, we require the ratio of smallest
 	   to largest principle curvatures of the DOG function
 	   (eigenvalues of the Hessian) to be below a threshold.  For
@@ -397,7 +397,7 @@ void InterpKeyPoint(
 	const flimage& grad, LWImage<bool>& map,
 	float octSize, keypointslist& keys, int movesRemain,siftPar &par)
 {
-	
+
 	/* Fit quadratic to determine offset and peak value. */
   std::vector<float> offset(3);
 	float peakval = FitQuadratic(offset, dogs, r, c);
@@ -432,13 +432,13 @@ void InterpKeyPoint(
 	   outside expected limits, or if magnitude of peak value is below
 	   threshold (i.e., contrast is too low). */
 	if (fabs(offset[0]) > 1.5 || fabs(offset[1]) > 1.5 ||
-		fabs(offset[2]) > 1.5 || fabs(peakval) < par.PeakThresh)		
+		fabs(offset[2]) > 1.5 || fabs(peakval) < par.PeakThresh)
 		{
-			if (DEBUG) printf("Point not well localized by FitQuadratic\n"); 	
+			if (DEBUG) printf("Point not well localized by FitQuadratic\n");
 			par.noncorrectlylocalized++;
 			return;
 		}
-	
+
 	/* Check that no keypoint has been created at this location (to avoid
 	   duplicates).  Otherwise, mark this map location.
 	*/
@@ -528,7 +528,7 @@ void AssignOriHist(
 	int	bin, prev, next;
 	float* hist = new float[par.OriBins];
 	float	distsq, dif, weight, angle, interp;
-	float radius2, sigma2;		
+	float radius2, sigma2;
 
 	int	row = (int) (octRow+0.5),
 		col = (int) (octCol+0.5),
@@ -556,7 +556,7 @@ void AssignOriHist(
 
             if (g[0] > 0.0  &&  distsq < radius2 + 0.5) {
                 weight = exp(- distsq / sigma2);
-					
+
                 /* Ori is in range of -PI to PI. */
                 bin = (int) (par.OriBins * (g[1] + M_PI + 0.001) / (2.0 * M_PI));
                 assert(bin >= 0 && bin <= par.OriBins);
@@ -573,7 +573,7 @@ void AssignOriHist(
 
 	/* Find maximum value in histogram. */
 	float maxval = 0.0;
-	for (int i = 0; i < par.OriBins; i++) 
+	for (int i = 0; i < par.OriBins; i++)
 		if (hist[i] > maxval) maxval = hist[i];
 
 	/* Look for each local peak in histogram.  If value is within
@@ -584,13 +584,13 @@ void AssignOriHist(
 
 		if (	hist[i] > hist[prev]  &&  hist[i] > hist[next]  &&
 			hist[i] >= par.OriHistThresh * maxval ) {
-	
+
 			/* Use parabolic fit to interpolate peak location from 3 samples.
 			  Set angle in range -PI to PI. */
 			interp = InterpPeak(hist[prev], hist[i], hist[next]);
 			angle = static_cast<float>(2.0f * M_PI * (i + 0.5f + interp) / (float)par.OriBins - M_PI);
 			assert(angle >= -M_PI  &&  angle <= M_PI);
-		
+
 			if (DEBUG) printf("angle selected: %f \t location: (%f,%f)\n", angle, octRow, octCol);
 
 			/* Create a keypoint with this orientation. */
@@ -709,7 +709,7 @@ void MakeKeypointSample(
 void NormalizeVec(float* vec)
 {
 	float val, fac;
-	
+
 	float sqlen = 0.0;
 	for (int i = 0; i < VecLength; i++) {
 		val = vec[i];
@@ -729,7 +729,7 @@ void KeySampleVec(
 	keypoint& key, const flimage& grad,
 	float scale, float row, float col,siftPar &par)
 {
-	
+
 	float index[IndexSize][IndexSize][OriSize];
 
 	/* Initialize index array. */
@@ -801,7 +801,7 @@ void KeySample(
 			 weight on index[1] (e.g., when rpos is 0 and IndexSize is 3. */
 			 rx = rpos + IndexSize / 2.0f - 0.5f;
 			 cx = cpos + IndexSize / 2.0f - 0.5f;
-	
+
 			/* Test whether this sample falls within boundary of index patch. */
 			if (	rx > -1.0 && rx < (float) IndexSize  &&
 				cx > -1.0 && cx < (float) IndexSize )
@@ -904,13 +904,13 @@ void PlaceInIndex(
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// SIFT keypoint matching 
+/// SIFT keypoint matching
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float DistSquared(keypoint &k1,keypoint &k2, float tdist, siftPar &par)
 {
-	
+
 	float dif;
 	float distsq = 0.0;
 
@@ -940,9 +940,9 @@ std::pair<float,float> CheckForMatch(keypoint& key, keypointslist& klist,
 	distsq1 = distsq2 = 1000000000000.0f;
 
 	for (keypointslist::size_type j=0; j< klist.size(); j++){
-	
+
 		dsq = DistSquared(key, klist[j], distsq2,par);
-		
+
 		if (dsq < distsq1) {
 			distsq2 = distsq1;
 			distsq1 = dsq;
@@ -960,7 +960,7 @@ void compute_sift_matches(
 	matchingslist& matchings,siftPar &par)
 {
 	float sqminratio = par.MatchRatio * par.MatchRatio;
-		
+
 	for (keypointslist::size_type i=0; i<keys1.size(); i++) {
         keypointslist::size_type imatch=0;
         std::pair<float,float> d = CheckForMatch(keys1[i], keys2, imatch,par);
