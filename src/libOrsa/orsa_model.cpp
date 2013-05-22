@@ -2,7 +2,7 @@
  * @file orsa_model.cpp
  * @brief Model estimation by ORSA (aka AC-RANSAC) algorithm
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
- * 
+ *
  * Copyright (c) 2007,2010-2011 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
@@ -104,7 +104,8 @@ OrsaModel::ErrorIndex OrsaModel::bestNFA(const std::vector<ErrorIndex>& e,
                        0);
   const int n = static_cast<int>( e.size() );
   for(int k=startIndex+1; k<=n && e[k-1].error<=maxThreshold; ++k) {
-    double logalpha = logalpha0_[e[k-1].side] + multError*log10(e[k-1].error);
+    double logalpha = logalpha0_[e[k-1].side]
+      + multError*log10(e[k-1].error + std::numeric_limits<double>::min());
     ErrorIndex index(loge0+logalpha*(double)(k-startIndex)+logc_n[k]+logc_k[k],
                      k, e[k-1].side);
     if(index.error < bestIndex.error)
@@ -161,7 +162,7 @@ static void UniformSample(int sizeSample,
 ///  ee        = {http://dx.doi.org/10.1023/B:VISI.0000013094.38752.54},
 ///  bibsource = {DBLP, http://dblp.uni-trier.de}
 ///}
-/// 
+///
 /// ORSA is based on an a contrario criterion of
 /// inlier/outlier discrimination, is parameter free and relies on an optimized
 /// random sampling procedure. It returns the log of NFA and optionally
