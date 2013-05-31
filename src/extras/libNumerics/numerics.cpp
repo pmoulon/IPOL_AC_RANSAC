@@ -211,7 +211,7 @@ void SVD::EnforceRank2_3x3(const Mat& A, Mat *ARank)
 
 /// Save the two last nullspace vectors as 3x3 matrices.
 void SVD::Nullspace2_Remap33(const Mat &A, Mat& f1, Mat& f2) {
-    assert(A.nrow()==7 && A.ncol()==9);
+    assert(A.ncol()==9);
     assert(f1.nrow()==3 && f1.ncol()==3);
     assert(f2.nrow()==3 && f2.ncol()==3);      
     libNumerics::SVD svd(A);
