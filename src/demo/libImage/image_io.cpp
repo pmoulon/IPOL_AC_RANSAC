@@ -299,24 +299,45 @@ int ReadPngStream(FILE *file,
 
   png_read_info(png_ptr, info_ptr);
 
-  *h = info_ptr->height;
-  *w = info_ptr->width;
-  *depth = info_ptr->channels;
-  (*ptr) = vector<unsigned char>((*h)*(*w)*(*depth));
+  int type=0;
+  png_uint_32 uw, uh;
+  png_get_IHDR(png_ptr, info_ptr, &uw, &uh, depth, &type, NULL, NULL, NULL);
+  *w = static_cast<int>(uw);
+  *h = static_cast<int>(uh);
+  if(type==PNG_COLOR_TYPE_GRAY && *depth<8)
+      png_set_expand_gray_1_2_4_to_8(png_ptr);
+  if(type==PNG_COLOR_TYPE_PALETTE)
+      png_set_palette_to_rgb(png_ptr);
+  if(*depth==16)
+      png_set_strip_16(png_ptr);
+  switch(type) {
+  case PNG_COLOR_TYPE_GRAY:       *depth=1; break;
+  case PNG_COLOR_TYPE_GRAY_ALPHA: *depth=2; break;
+  case PNG_COLOR_TYPE_PALETTE:    *depth=3; break;
+  case PNG_COLOR_TYPE_RGB:        *depth=3; break;
+  case PNG_COLOR_TYPE_RGB_ALPHA:  *depth=4; break;
+  default:
+      cerr << "Unknown color type in PNG file" << endl;
+      return 0;
+  }
+  if(type & PNG_COLOR_MASK_ALPHA) ++*depth;
+  if(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+      png_set_tRNS_to_alpha(png_ptr);
+      ++*depth;
+  }
+
+  *ptr = vector<unsigned char>((*h)*(*w)*(*depth));
 
   png_read_update_info(png_ptr, info_ptr);
 
   if (setjmp(png_jmpbuf(png_ptr)))
     return 0;
 
-  png_bytep *row_pointers =
-       (png_bytep*)malloc(sizeof(png_bytep) * info_ptr->channels *
-       (*h));
-
   unsigned char * ptrArray = &((*ptr)[0]);
-  int y;
-  for (y = 0; y < (*h); ++y)
-    row_pointers[y] = (png_byte*) (ptrArray) + info_ptr->rowbytes*y;
+  png_bytep *row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * (*h));
+  int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+  for (int y = 0; y < (*h); ++y)
+    row_pointers[y] = (png_byte*) (ptrArray) + rowbytes*y;
 
   png_read_image(png_ptr, row_pointers);
   free(row_pointers);

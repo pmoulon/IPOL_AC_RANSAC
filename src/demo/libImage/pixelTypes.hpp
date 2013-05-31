@@ -1,4 +1,5 @@
 //Copyright (C) 2011 Pierre Moulon
+//Copyright (C) 2013 Pascal Monasse (RGBA)
 //
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -93,5 +94,20 @@ const RGBColor GREEN(0,255,0);
 const RGBColor YELLOW(255,255,0);
 const RGBColor CYAN(0,255,255);
 const RGBColor MAGENTA(255,0,255);
+
+class RGBA {
+public:
+    unsigned char r,g,b,a;
+    RGBA()
+    : r(0),g(0),b(0),a(255) {}
+    explicit RGBA(RGBColor col, unsigned char alpha=255)
+    : r(col.r),g(col.g),b(col.b),a(alpha) {}
+    bool operator==(const RGBA& o) const {
+        return (r==o.r && g==o.g && b==o.b && a==o.a);
+    }
+    bool operator!=(const RGBA& o) const {
+        return !operator==(o);
+    }
+};
 
 #endif

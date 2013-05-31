@@ -1,4 +1,4 @@
-//Copyright (C) 2011 Pierre Moulon, Pascal Monasse
+//Copyright (C) 2011-2013 Pierre Moulon, Pascal Monasse
 //
 //This program is free software: you can redistribute it and/or modify
 //it under the terms of the GNU General Public License as published by
@@ -38,6 +38,26 @@ template<>
 inline void convert<unsigned char,RGBColor>(const unsigned char& in, RGBColor& out)
 {
   out.r = out.g = out.b = in;
+}
+
+template<>
+inline void convert<RGBColor,RGBA>(const RGBColor& in, RGBA& out) {
+    out = RGBA(in);
+}
+
+template<>
+inline void convert<RGBA,RGBColor>(const RGBA& in, RGBColor& out) {
+    out.r=in.r; out.g=in.g; out.b=in.b;
+}
+
+template<>
+inline void convert<unsigned char,RGBA>(const unsigned char& in, RGBA& out) {
+    out = RGBA(RGBColor(in),255);
+}
+
+template<>
+inline void convert<RGBA,unsigned char>(const RGBA& in, unsigned char& out) {
+    convert(RGBColor(in.r,in.g,in.b), out);
 }
 
 template<typename ImageIn, typename ImageOut>

@@ -87,6 +87,10 @@ inline int ReadImage(const char * path, Image<unsigned char> * im)
     {
       Image<RGBColor> color(w, h, (const RGBColor*) &ptr[0]);
       convertImage(color, im);
+    } else if(depth == 4)
+    {
+      Image<RGBA> rgba(w, h, (const RGBA*) &ptr[0]);
+      convertImage(rgba, im);
     } else
       res = 0; // Do not know how to convert to gray
   }
@@ -109,6 +113,36 @@ inline int ReadImage(const char * path, Image<RGBColor> * im)
     {
       Image<unsigned char> gray(w, h, &ptr[0]);
       convertImage(gray, im);
+    } else if(depth == 4)
+    {
+      Image<RGBA> rgba(w, h, (const RGBA*) &ptr[0]);
+      convertImage(rgba, im);
+    } else
+      res = 0; // Do not know how to convert to color
+  }
+  return res;
+}
+
+template<>
+inline int ReadImage(const char * path, Image<RGBA> * im)
+{
+  std::vector<unsigned char> ptr;
+  int w, h, depth;
+
+  int res = ReadImage(path, &ptr, &w, &h, &depth);
+
+  if (res == 1) {
+    if(depth == 4)
+    {
+      (*im) = Image<RGBA>(w, h, (const RGBA*) &ptr[0]);
+    } else if(depth == 1)
+    {
+      Image<unsigned char> gray(w, h, &ptr[0]);
+      convertImage(gray, im);
+    } else if(depth == 3)
+    {
+      Image<RGBColor> color(w, h, (const RGBColor*) &ptr[0]);
+      convertImage(color, im);
     } else
       res = 0; // Do not know how to convert to color
   }
