@@ -37,28 +37,11 @@ class Rect
     : top(t), bottom(b), left(l), right(r)
     {}
 
-    /// Grow rectangle to include (x,y)
-    void growTo(double x, double y) {
-      if(x < left)   left   = static_cast<int>( floor(x) );
-      if(x > right)  right  = static_cast<int>( ceil(x) );
-      if(y < top)    top    = static_cast<int>( floor(y) );
-      if(y > bottom) bottom = static_cast<int>( ceil(y) );
-    }
+    void growTo(double x, double y);
 
-    /// Return true if the rectangle r2 intersect *this.
-    bool intersect(const Rect &r2) const {
-        return !(left > r2.right || right < r2.left ||
-                 top > r2.bottom || bottom < r2.top);
-    }
-    /// Return the same as intersect(r2) and return the common intersection zone
-    bool intersect(const Rect &r2, Rect &inter) const {
-      if( this->intersect(r2) ) {
-        inter = Rect( max(left, r2.left)  , max(top, r2.top),
-                      min(right, r2.right), min(bottom, r2.bottom));
-        return true;
-      }
-      return false;
-    }
+    bool intersect(const Rect &r2) const;
+    bool intersect(const Rect &r2, Rect &inter) const;
+    bool intersect(double a, double b, double c);
 
     /// Return width of the rectangle
     int Width() const {return right - left; }

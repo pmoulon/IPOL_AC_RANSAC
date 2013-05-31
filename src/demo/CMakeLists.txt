@@ -7,7 +7,7 @@ endif (OPENMP_FOUND)
 
 # Executable demo to estimate a homography matrix from SIFT matches and
 # display the corresponding mosaic.
-ADD_EXECUTABLE(demo_orsa_homography orsa_homography.cpp)
+ADD_EXECUTABLE(demo_orsa_homography orsa_homography.cpp Rect.cpp)
 TARGET_LINK_LIBRARIES(demo_orsa_homography Orsa image sift)
 
 IF(UNIX)
@@ -19,6 +19,7 @@ INSTALL(FILES CMakeLists.txt
               cmdLine.h
               orsa_homography.cpp
               Rect.hpp
+              Rect.cpp
               siftMatch.hpp
               warping.hpp
         DESTINATION src/demo)
