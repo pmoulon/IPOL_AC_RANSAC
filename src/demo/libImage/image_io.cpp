@@ -29,9 +29,6 @@ using namespace std;
 extern "C" {
   #include "jpeglib.h"
   #include "png.h"
-#if PNG_LIBPNG_VER >= 10501
-  #include "pnginfo.h"
-#endif
 }
 
 #include "libImage/image_io.hpp"
@@ -413,9 +410,10 @@ int WritePngStream(FILE * file,
   png_bytep *row_pointers =
       (png_bytep*) malloc(sizeof(png_bytep) * depth * h);
 
+  int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
   int y;
   for (y = 0; y < h; ++y)
-    row_pointers[y] = (png_byte*) (&ptr[0]) + info_ptr->rowbytes*y;
+    row_pointers[y] = (png_byte*) (&ptr[0]) + rowbytes*y;
 
   png_write_image(png_ptr, row_pointers);
 

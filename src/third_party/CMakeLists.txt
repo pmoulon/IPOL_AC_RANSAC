@@ -2,10 +2,6 @@
 #Third party libraries
 #---------------------
 
-ADD_SUBDIRECTORY(CppUnitLite)
+add_subdirectory(CppUnitLite)
 
-ADD_SUBDIRECTORY(zlib)
-ADD_SUBDIRECTORY(png)
-ADD_SUBDIRECTORY(jpeg)
-
-INSTALL(FILES CMakeLists.txt DESTINATION src/third_party)
+install(FILES CMakeLists.txt DESTINATION src/third_party)

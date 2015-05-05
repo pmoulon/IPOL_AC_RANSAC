@@ -12,24 +12,28 @@ SET(SRC image.hpp
 
 ADD_LIBRARY(image ${SRC})
 
-TARGET_LINK_LIBRARIES(image png jpeg)
+# zlib is needed by libPNG
+find_package(ZLIB)
+if(NOT ZLIB_FOUND)
+  add_subdirectory(../../third_party/zlib ../../third_party/zlib)
+endif(NOT ZLIB_FOUND)
+include_directories(${ZLIB_INCLUDE_DIRS})
 
-FIND_PACKAGE(PNG)
-IF(NOT PNG_FOUND)
-    SET(PNG_INCLUDE_DIR ../../third_party/png)
-ENDIF(NOT PNG_FOUND)
+find_package(PNG)
+if(NOT PNG_FOUND)
+    add_subdirectory(../../third_party/png ../../third_party/png)
+endif(NOT PNG_FOUND)
+include_directories(${PNG_INCLUDE_DIRS})
 
 FIND_PACKAGE(JPEG)
 IF(NOT JPEG_FOUND)
-    IF(UNIX)
-        ADD_DEFINITIONS(-DHAVE_PROTOTYPES)
-    ENDIF(UNIX)
-    SET(JPEG_INCLUDE_DIR ../../third_party/jpeg)
+    add_subdirectory(../../third_party/jpeg ../../third_party/jpeg)
 ENDIF(NOT JPEG_FOUND)
+include_directories(${JPEG_INCLUDE_DIR})
 
 ADD_DEFINITIONS(${PNG_DEFINITIONS})
-INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR})
+
+TARGET_LINK_LIBRARIES(image ${PNG_LIBRARIES} ${JPEG_LIBRARIES})
 
 IF(UNIX)
     SET_TARGET_PROPERTIES(image PROPERTIES
