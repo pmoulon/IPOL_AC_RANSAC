@@ -1,6 +1,6 @@
 # CMakeLists.txt
 
-# Copyright (C) 2007-2014 Glenn Randers-Pehrson
+# Copyright (C) 2007-2015 Glenn Randers-Pehrson
 
 # This code is released under the libpng license.
 # For conditions of distribution and use, see the disclaimer
@@ -16,7 +16,7 @@ enable_testing()
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
-set(PNGLIB_RELEASE 16)
+set(PNGLIB_RELEASE 17)
 set(PNGLIB_NAME libpng${PNGLIB_MAJOR}${PNGLIB_MINOR})
 set(PNGLIB_VERSION ${PNGLIB_MAJOR}.${PNGLIB_MINOR}.${PNGLIB_RELEASE})
 
@@ -35,8 +35,7 @@ if(NOT WIN32)
     PATHS /usr/lib /usr/local/lib
   )
   if(NOT M_LIBRARY)
-    message(STATUS
-      "math library 'libm' not found - floating point support disabled")
+    message(STATUS "math lib 'libm' not found; floating point support disabled")
   endif()
 else()
   # not needed on windows
@@ -58,8 +57,9 @@ endif()
 option(PNG_TESTS  "Build libpng tests" NO)
 
 # Many more configuration options could be added here
-option(PNG_DEBUG         "Build with debug output" NO)
-option(PNGARG            "Disable ANSI-C prototypes" NO)
+option(PNG_FRAMEWORK "Build OS X framework" OFF)
+option(PNG_DEBUG     "Build with debug output" OFF)
+option(PNGARG        "Disable ANSI-C prototypes" OFF)
 
 # SET LIBNAME
 set(PNG_LIB_NAME png${PNGLIB_MAJOR}${PNGLIB_MINOR})
@@ -71,8 +71,8 @@ set(CMAKE_DEBUG_POSTFIX "d")
 # TODO: fix this by building with awk; without this no cmake build can be
 # configured directly (to do so indirectly use your local awk to build a
 # pnglibconf.h in the build directory.)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/pnglibconf.h.prebuilt
-               ${CMAKE_CURRENT_SOURCE_DIR}/pnglibconf.h)
+#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/scripts/pnglibconf.h.prebuilt
+#               ${CMAKE_CURRENT_SOURCE_DIR}/pnglibconf.h)
 #include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # OUR SOURCES
@@ -139,7 +139,7 @@ if(PNG_SHARED)
 endif()
 
 if(PNG_STATIC)
-# does not work without changing name
+  # does not work without changing name
   set(PNG_LIB_NAME_STATIC ${PNG_LIB_NAME}_static)
   add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
   list(APPEND PNG_LIB_TARGETS ${PNG_LIB_NAME_STATIC})
@@ -150,10 +150,27 @@ if(PNG_STATIC)
   target_link_libraries(${PNG_LIB_NAME_STATIC} ${ZLIB_LIBRARIES} ${M_LIBRARY})
 endif()
 
+if(PNG_FRAMEWORK)
+  set(PNG_LIB_NAME_FRAMEWORK ${PNG_LIB_NAME}_framework)
+  add_library(${PNG_LIB_NAME_FRAMEWORK} SHARED ${libpng_sources})
+  list(APPEND PNG_LIB_TARGETS ${PNG_LIB_NAME_FRAMEWORK})
+  set_target_properties(${PNG_LIB_NAME_FRAMEWORK} PROPERTIES
+    FRAMEWORK TRUE
+    FRAMEWORK_VERSION ${PNGLIB_VERSION}
+    MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${PNGLIB_MAJOR}.${PNGLIB_MINOR}
+    MACOSX_FRAMEWORK_BUNDLE_VERSION ${PNGLIB_VERSION}
+    MACOSX_FRAMEWORK_IDENTIFIER org.libpng.libpng
+    XCODE_ATTRIBUTE_INSTALL_PATH "@rpath"
+    PUBLIC_HEADER "${libpng_public_hdrs}"
+    OUTPUT_NAME png)
+  target_link_libraries(${PNG_LIB_NAME_FRAMEWORK} ${ZLIB_LIBRARY} ${M_LIBRARY})
+endif()
+
 if(NOT PNG_LIB_TARGETS)
   message(SEND_ERROR
     "No library variant selected to build. "
-    "Please enable at least one of the following options: PNG_STATIC, PNG_SHARED")
+    "Please enable at least one of the following options: "
+    " PNG_STATIC, PNG_SHARED, PNG_FRAMEWORK")
 endif()
 
 if(PNG_SHARED AND WIN32)
@@ -258,7 +275,7 @@ endif(NOT WIN32 OR CYGWIN OR MINGW)
 # SET UP LINKS
 if(PNG_SHARED)
   set_target_properties(${PNG_LIB_NAME} PROPERTIES
-#   VERSION 16.${PNGLIB_RELEASE}.1.6.16
+#   VERSION 16.${PNGLIB_RELEASE}.1.6.17
     VERSION 16.${PNGLIB_RELEASE}.0
     SOVERSION 16
     CLEAN_DIRECT_OUTPUT 1)
@@ -289,7 +306,8 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
       ${PNG_EXPORT_RULE}
       RUNTIME DESTINATION bin
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
   if(PNG_SHARED)
     # Create a symlink for libpng.dll.a => libpng16.dll.a on Cygwin
