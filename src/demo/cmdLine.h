@@ -3,7 +3,7 @@
  * @brief Command line option parsing
  * @author Pascal Monasse
  * 
- * Copyright (c) 2012 Pascal Monasse
+ * Copyright (c) 2012-2014 Pascal Monasse
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,10 @@
 #include <string>
 #include <sstream>
 #include <cassert>
+
+#ifdef _WIN32
+#pragma warning(disable:4290) // exception specification ignored...
+#endif
 
 /// Base class for option/switch
 class Option {
@@ -59,6 +63,11 @@ public:
             std::rotate(argv, argv+1, argv+argc);
             argc -= 1;
             return true;
+        } else if(std::string(argv[0]).find(std::string("-")+c)==0) {
+            used = true; // Handle multiple switches in single option
+            std::rotate(argv[0]+1, argv[0]+2,
+                        argv[0]+std::string(argv[0]).size()+1);
+            return true;
         }
         return false;
     }
@@ -68,7 +77,7 @@ public:
     }
 };
 
-/// Option with an argument of type T. The type must be readable by operator>>
+/// Option with an argument of type T, which must be readable by operator>>
 template <class T>
 class OptionField : public Option {
 public:
@@ -78,22 +87,35 @@ public:
     /// Find option in argv[0] and argument in argv[1]. Throw an exception
     /// (type std::string) if the argument cannot be read.
     bool check(int& argc, char* argv[]) {
+        std::string param; int arg=0;
         if(std::string("-")+c==argv[0] ||
            (!longName.empty() && std::string("--")+longName==argv[0])) {
-            std::stringstream str;
             if(argc<=1)
-                throw std::string("Error: Option ")
+                throw std::string("Option ")
                     +argv[0]+" requires argument";
-            str << argv[1];
-            if((str >> _field).fail() || !str.eof())
-                throw std::string("Error: Unable to interpret ")
-                    +argv[1]+" as argument of "+argv[0];
+            param=argv[1]; arg=2;
+        } else if(std::string(argv[0]).find(std::string("-")+c)==0) {
+            param=argv[0]+2; arg=1;
+        } else if(!longName.empty() &&
+                  std::string(argv[0]).find(std::string("--")+longName+'=')==0){
+            size_t size=(std::string("--")+longName+'=').size();
+            param=std::string(argv[0]).substr(size); arg=1;
+        }
+        if(arg>0) {
+            if(! read_param(param))
+                throw std::string("Unable to interpret ")
+                    +param+" as argument of "+argv[0];
             used = true;
-            std::rotate(argv, argv+2, argv+argc);
-            argc -= 2;
+            std::rotate(argv, argv+arg, argv+argc);
+            argc -= arg;
             return true;
         }
         return false;
+    }
+    /// Decode the string as template type T
+    bool read_param(const std::string& param) {
+        std::stringstream str(param); char unused;
+        return !((str >> _field).fail() || !(str>>unused).fail());
     }
     /// Copy
     Option* clone() const {
@@ -102,6 +124,14 @@ public:
 private:
     T& _field; ///< Reference to variable where to store the value
 };
+
+/// Template specialization to be able to take parameter including space.
+/// Generic method would do >>_field (stops at space) and signal unused chars.
+template <>
+inline bool OptionField<std::string>::read_param(const std::string& param) {
+    _field = param;
+    return true;
+}
 
 /// New switch option
 OptionSwitch make_switch(char c, std::string name="") {
@@ -149,9 +179,13 @@ public:
                     break;
                 }
             }
-            if(! found) {
-                if(std::string(argv[i]).size()>1 && argv[i][0] == '-')
-                    throw std::string("Unrecognized option ")+argv[i];
+            if(! found) { // A negative number is not an option
+                if(std::string(argv[i]).size()>1 && argv[i][0] == '-') {
+                    std::istringstream str(argv[i]);
+                    float v;
+                    if(! (str>>v).eof())
+                        throw std::string("Unrecognized option ")+argv[i];
+                }
                 ++i;
             }
         }
