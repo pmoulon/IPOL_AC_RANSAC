@@ -105,7 +105,7 @@ OrsaModel::ErrorIndex OrsaModel::bestNFA(const std::vector<ErrorIndex>& e,
   const int n = static_cast<int>( e.size() );
   for(int k=startIndex+1; k<=n && e[k-1].error<=maxThreshold; ++k) {
     double logalpha = logalpha0_[e[k-1].side]
-      + multError*log10(e[k-1].error + std::numeric_limits<double>::min());
+      + multError*log10(e[k-1].error + std::numeric_limits<double>::epsilon());
     ErrorIndex index(loge0+logalpha*(double)(k-startIndex)+logc_n[k]+logc_k[k],
                      k, e[k-1].side);
     if(index.error < bestIndex.error)
