@@ -39,22 +39,23 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
     Real p = (b-3*a*a)/3;
     Real q = (2*a*a*a - a*b + c)/2;
     Real d = q*q+p*p*p;
-    int n = (d>=-eps*eps? 1: 3);
-    if(n==1) { // Single root
-        d = std::abs(q)+std::sqrt(std::abs(d));
-        if(d <= 10*eps) // Notice d=0 implies p=q=0, triple root
-            x[0] = 0;
-        else { // Cardano's formula
-            d = std::pow(d, 1/3.0);
-            x[0] = d - p/d;
-            if(q>0)
-                x[0] = -x[0];
-        }
+    int n = (d>eps*eps*std::abs(q*q)? 1: 3);
+    if(n==1) { // Single root: Cardano's formula
+        d = std::pow(std::abs(q)+std::sqrt(d), 1/3.0);
+        x[0] = d - p/d;
+        if(q>0)
+            x[0] = -x[0];
     } else { // Three roots: Viete's formula
-        p = std::sqrt(-p);
-        d = std::acos(q/(p*p*p));
-        for(int i=0; i<3; i++)
-            x[i] = -2*p*std::cos((d+2*M_PI*i)/3);
+        if(p>=-10*eps) { // p=0 and d<=0 implies q=0: triple root 0
+            n = 1;
+            x[0] = 0;
+        } else {
+            p = std::sqrt(-p);
+            q /= p*p*p;
+            d = (q<=-1)? M_PI: (q>=1)? 0: std::acos(q);
+            for(int i=0; i<3; i++)
+                x[i] = -2*p*std::cos((d+2*M_PI*i)/3);
+        }
     }
     for(int i=0; i<n; i++)
         x[i] -= a;
