@@ -39,14 +39,16 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
     Real p = (b-3*a*a)/3;
     Real q = (2*a*a*a - a*b + c)/2;
     Real d = q*q+p*p*p;
-    int n = (d>eps*eps*std::abs(q*q)? 1: 3);
+    Real tolq = std::max(std::abs(2*a*a*a),std::max(std::abs(a*b),std::abs(c)));
+    Real tolp = std::max(std::abs(b),std::abs(3*a*a));
+    int n = (d>eps*std::max(p*p*tolp,std::abs(q)*tolq)? 1: 3);
     if(n==1) { // Single root: Cardano's formula
         d = std::pow(std::abs(q)+std::sqrt(d), 1/3.0);
         x[0] = d - p/d;
         if(q>0)
             x[0] = -x[0];
     } else { // Three roots: Viete's formula
-        if(p>=-10*eps) { // p=0 and d<=0 implies q=0: triple root 0
+        if(3*p>=-eps*tolp) { // p=0 and d<=0 implies q=0: triple root 0
             n = 1;
             x[0] = 0;
         } else {
@@ -64,33 +66,17 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
 
 /// Find real roots of cubic polynomial equation.
 /// \f[ coeffs[3] x^3 + coeffs[2] x^2 + coeffs[1] x + coeffs[0] = 0. \f]
-/// The coefficients are in ascending powers, i.e. coeffs[N]*x^N.
+/// The coefficients are in ascending powers, i.e. coeffs[i]*x^i.
 /// Return the number of solutions (1 or 3). A triple root is reported only once
-/// but double roots are reported twice (so 3 solutions).
+/// but a double root is reported twice (so 3 solutions).
 template<typename Real>
-int CubicRoots(const Real coeffs[4], Real solutions[3]) {
-    if(coeffs[0] == 0.0) {
+int CubicRoots(const Real coeffs[4], Real roots[3]) {
+    if(coeffs[0] == 0.0)
         return 0;
-    }
     Real a = coeffs[2] / coeffs[3];
     Real b = coeffs[1] / coeffs[3];
     Real c = coeffs[0] / coeffs[3];
-
-    Real norm = std::abs(a)/3;
-    if(norm*norm < std::abs(b)/3)
-        norm = std::sqrt(std::abs(b)/3);
-    if(norm*norm*norm < std::abs(c))
-        norm = std::pow(std::abs(c),1/(Real)3);
-    if(norm > (Real)1) {
-        a /= norm;
-        b /= norm*norm;
-        c /= norm*norm*norm;
-    }
-    int n = SolveCubicPolynomial(a, b, c, solutions);
-    if(norm > (Real)1)
-        for(int i=0; i<n; i++)
-            solutions[i] *= norm;
-    return n;
+    return SolveCubicPolynomial(a, b, c, roots);
 }
 
 }  // namespace orsa
