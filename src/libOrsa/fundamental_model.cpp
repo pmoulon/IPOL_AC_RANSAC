@@ -3,7 +3,7 @@
  * @brief Fundamental matrix model
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2015 Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,21 +47,18 @@ void FundamentalModel::Unnormalize(Model * model) const  {
 }
 
 /**
- * Build a 9 x n matrix from point matches, where each row is equivalent to the
- * equation x'T*F*x = 0 for a single correspondence pair (x', x). The domain of
+ * Build a nx9 matrix from point matches, where each row is equivalent to the
+ * equation xT*F*x' = 0 for a single correspondence pair (x, x'). The domain of
  * the matrix is a 9 element vector corresponding to F. In other words, set up
  * the linear system
- *
  *   Af = 0,
- *
  * where f is the F matrix as a 9-vector rather than a 3x3 matrix (row
  * major). If the points are well conditioned and there are 8 or more, then
  * the nullspace should be rank one. If the nullspace is two dimensional,
  * then the rank 2 constraint must be enforced to identify the appropriate F
  * matrix.
  *
- * Note that this does not resize the matrix A; it is expected to have the
- * appropriate size already.
+ * Do not resize the matrix A, assumed to have the appropriate size already.
  */
 static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
                                    const OrsaModel::Mat &x2,

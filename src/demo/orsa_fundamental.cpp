@@ -3,7 +3,7 @@
  * @brief Fundamental matrix estimation
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2013 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2015 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
