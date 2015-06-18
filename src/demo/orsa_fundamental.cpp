@@ -51,9 +51,9 @@ static void display_stats(const std::vector<Match>& vec_matchings,
     double l2=0, linf=0;
     for(; it!=vec_inliers.end(); ++it) {
       const Match& m=vec_matchings[*it];
-      double a = F(0,0) * m.x1 + F(0,1) * m.y1 + F(0,2);
-      double b = F(1,0) * m.x1 + F(1,1) * m.y1 + F(1,2);
-      double c = F(2,0) * m.x1 + F(2,1) * m.y1 + F(2,2);
+      double a = F(0,0) * m.x1 + F(1,0) * m.y1 + F(2,0);
+      double b = F(0,1) * m.x1 + F(1,1) * m.y1 + F(2,1);
+      double c = F(0,2) * m.x1 + F(1,2) * m.y1 + F(2,2);
       double d = a*m.x2 + b*m.y2 + c;
       double e =  (d*d) / (a*a + b*b);
       l2 += e;
@@ -184,8 +184,8 @@ void display_match(const std::vector<Match>& vec_matchings,
       if(it != vec_inliers.end() && i==*it)
         ++it;
       else { //Outlier
-        display_error(F->t(), inv(*m), H1, R1, out);  
-        display_error(*F,         *m,  H2, R2, out);
+        display_error(*F,     inv(*m), H1, R1, out);  
+        display_error(F->t(),     *m,  H2, R2, out);
       }
     }
 
@@ -334,8 +334,8 @@ int main(int argc, char **argv)
         libs::DrawCircle((int)x2,(int)y2, 2, col, &im);
         if(inlier)
         {
-          draw_small_epi(F.t(), inv(m), T1, margin1, &im);
-          draw_small_epi(F,         m,  T2, margin2, &im);
+          draw_small_epi(F,     inv(m), T1, margin1, &im);
+          draw_small_epi(F.t(),     m,  T2, margin2, &im);
         }
       }
       libs::WriteImage(argv[argc-1], im);

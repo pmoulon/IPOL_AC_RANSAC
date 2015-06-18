@@ -69,14 +69,14 @@ static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
                                    OrsaModel::Mat *A) {
   for (size_t i = 0; i < indices.size(); ++i) {
     int j = indices[i];
-    (*A)(i, 0) = x2(0,j) * x1(0,j);  // 0 represents x coords,
-    (*A)(i, 1) = x2(0,j) * x1(1,j);  // 1 represents y coords.
-    (*A)(i, 2) = x2(0,j);
-    (*A)(i, 3) = x2(1,j) * x1(0,j);
-    (*A)(i, 4) = x2(1,j) * x1(1,j);
-    (*A)(i, 5) = x2(1,j);
-    (*A)(i, 6) = x1(0,j);
-    (*A)(i, 7) = x1(1,j);
+    (*A)(i, 0) = x1(0,j) * x2(0,j);  // 0 represents x coords,
+    (*A)(i, 1) = x1(0,j) * x2(1,j);  // 1 represents y coords.
+    (*A)(i, 2) = x1(0,j);
+    (*A)(i, 3) = x1(1,j) * x2(0,j);
+    (*A)(i, 4) = x1(1,j) * x2(1,j);
+    (*A)(i, 5) = x1(1,j);
+    (*A)(i, 6) = x2(0,j);
+    (*A)(i, 7) = x2(1,j);
     (*A)(i, 8) = 1.0;
   }
 }
@@ -150,16 +150,16 @@ double FundamentalModel::Error(const Mat &F, int index, int* side) const {
   double a, b, c, d;
   // Transfer error in image 2
   if(side) *side=1;
-  a = F(0,0) * xa + F(0,1) * ya + F(0,2);
-  b = F(1,0) * xa + F(1,1) * ya + F(1,2);
-  c = F(2,0) * xa + F(2,1) * ya + F(2,2);
+  a = F(0,0) * xa + F(1,0) * ya + F(2,0);
+  b = F(0,1) * xa + F(1,1) * ya + F(2,1);
+  c = F(0,2) * xa + F(1,2) * ya + F(2,2);
   d = a*xb + b*yb + c;
   double err =  (d*d) / (a*a + b*b);
   // Transfer error in image 1
   if(symError_) { // ... but only if requested
-    a = F(0,0) * xb + F(1,0) * yb + F(2,0);
-    b = F(0,1) * xb + F(1,1) * yb + F(2,1);
-    c = F(0,2) * xb + F(1,2) * yb + F(2,2);
+    a = F(0,0) * xb + F(0,1) * yb + F(0,2);
+    b = F(1,0) * xb + F(1,1) * yb + F(1,2);
+    c = F(2,0) * xb + F(2,1) * yb + F(2,2);
     d = a*xa + b*ya + c;
     double err1 =  (d*d) / (a*a + b*b);
     if(err1>err) {

@@ -46,7 +46,7 @@ namespace orsa {
 
   // Denormalize the results. See Hartley-Zisserman page 109.
   void UnnormalizerT::Unnormalize(const Mat &T1, const Mat &T2, Mat *H)  {
-    *H = T2.t() * (*H) * T1;
+    *H = T1.t() * (*H) * T2;
   }
 
   void UnnormalizerI::Unnormalize(const Mat &T1, const Mat &T2, Mat *H)  {
