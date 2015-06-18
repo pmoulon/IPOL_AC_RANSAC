@@ -224,6 +224,7 @@ int main(int argc, char **argv)
   CmdLine cmd;
   cmd.add( make_option('p',precision, "prec") );
   cmd.add( make_option('s',fSiftRatio, "sift") );
+  cmd.add( make_switch('r', "read") );
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -234,6 +235,7 @@ int main(int argc, char **argv)
     std::cerr << "Usage: " << argv[0] << " imgInA imgInB "
               << "[-p|--prec precision] "
               << "[-s|--sift siftRatio] "
+              << "[-r|--read] "
               << "allMatches.txt orsaMatches.txt "
               << "[imgInliers imgOutliers] [imgEpipolar]"
               << std::endl;
@@ -253,15 +255,23 @@ int main(int argc, char **argv)
   libs::convertImage(image1, &image1Gray);
   libs::convertImage(image2, &image2Gray);
 
-  // SIFT
+  // Find matches with SIFT or read correspondence file
   std::vector<Match> vec_matchings;
-  SIFT(image1Gray, image2Gray, vec_matchings, fSiftRatio);
+  if(cmd.used('r')) {
+      if(Match::loadMatch(argv[3], vec_matchings))
+          std::cout << "Read " <<vec_matchings.size()<< " matches" <<std::endl;
+      else {
+          std::cerr << "Failed reading matches from " << argv[3] <<std::endl;
+          return 1;
+      }
+  } else
+      SIFT(image1Gray, image2Gray, vec_matchings, fSiftRatio);
 
   // Remove duplicates (frequent with SIFT)
   rm_duplicates(vec_matchings);
 
   // Save match files
-  if(! Match::saveMatch(argv[3], vec_matchings)) {
+  if(! cmd.used('r') && ! Match::saveMatch(argv[3], vec_matchings)) {
     std::cerr << "Failed saving matches into " <<argv[3] <<std::endl;
     return 1;
   }
