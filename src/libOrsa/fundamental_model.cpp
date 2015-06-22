@@ -21,7 +21,6 @@
  */
 
 #include "libOrsa/fundamental_model.hpp"
-#include "libOrsa/conditioning.hpp"
 #include "libOrsa/cubicRoots.h"
 #include "extras/libNumerics/numerics.h"
 
@@ -78,6 +77,15 @@ static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
   }
 }
 
+/// Determinant of 3x3 matrix expressed by its columns (v1 v2 v3).
+inline double det3(const OrsaModel::Vec& v1,
+                   const OrsaModel::Vec& v2,
+                   const OrsaModel::Vec& v3){
+    return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
+           v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
+           v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
+}
+
 void FundamentalModel::Fit(const std::vector<int> &indices,
                            std::vector<Mat> *Fs) const {
   assert(2 == x1_.nrow());
@@ -108,22 +116,14 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
     libNumerics::SVD::Nullspace2_Remap33(A,F1,F2);
 
     // Then, use the condition det(F) = 0 to determine F. In other words, solve
-    // det(F1 + a*F2) = 0 for a.
-    double a = F1(0, 0), b = F1(0, 1), c = F1(0, 2),
-           d = F1(1, 0), e = F1(1, 1), f = F1(1, 2),
-           g = F1(2, 0), h = F1(2, 1), i = F1(2, 2),
-           j = F2(0, 0), k = F2(0, 1), l = F2(0, 2),
-           m = F2(1, 0), n = F2(1, 1), o = F2(1, 2),
-           p = F2(2, 0), q = F2(2, 1), r = F2(2, 2);
-
-    // The coefficients are in ascending powers of alpha, i.e. P[N]*x^N.
+    // det(F1 + t*F2) = 0 for t.
+    Vec v1=F1.col(0), v2=F1.col(1), v3=F1.col(2);
+    Vec w1=F2.col(0), w2=F2.col(1), w3=F2.col(2);
     double P[4] = {
-      a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g,
-      a*e*r + a*i*n + b*f*p + b*g*o + c*d*q + c*h*m + d*h*l + e*i*j + f*g*k -
-      a*f*q - a*h*o - b*d*r - b*i*m - c*e*p - c*g*n - d*i*k - e*g*l - f*h*j,
-      a*n*r + b*o*p + c*m*q + d*l*q + e*j*r + f*k*p + g*k*o + h*l*m + i*j*n -
-      a*o*q - b*m*r - c*n*p - d*k*r - e*l*p - f*j*q - g*l*n - h*j*o - i*k*m,
-      j*n*r + k*o*p + l*m*q - j*o*q - k*m*r - l*n*p,
+        det3(v1,v2,v3),
+        det3(w1,v2,v3)+det3(v1,w2,v3)+det3(v1,v2,w3),
+        det3(v1,w2,w3)+det3(w1,v2,w3)+det3(w1,w2,v3),
+        det3(w1,w2,w3)
     };
 
     // Solve for the roots of P[3]*x^3 + P[2]*x^2 + P[1]*x + P[0] = 0.
