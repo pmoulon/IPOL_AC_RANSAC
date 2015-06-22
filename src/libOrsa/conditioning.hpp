@@ -64,13 +64,6 @@ struct UnnormalizerI {
   static void Unnormalize(const Mat &T1, const Mat &T2, Mat *H);
 };
 
-/// Use transpose for unnormalize
-struct UnnormalizerT {
-  // Denormalize the results. See Hartley-Zisserman page 109.
-  // All matrices must be (3,3)
-  static void Unnormalize(const Mat &T1, const Mat &T2, Mat *H);
-};
-
 } //namespace orsa
 
 #endif // LIBS_MULTIVIEW_CONDITIONNING_H_

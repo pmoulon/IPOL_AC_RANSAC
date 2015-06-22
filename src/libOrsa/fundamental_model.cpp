@@ -43,7 +43,7 @@ FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
 
 /// Unnormalize a given model (from normalized to image space).
 void FundamentalModel::Unnormalize(Model * model) const  {
-  UnnormalizerT::Unnormalize(N1_, N2_, model);
+    *model = N1_.t() * (*model) * N2_;
 }
 
 /**
