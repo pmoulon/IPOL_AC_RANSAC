@@ -30,7 +30,6 @@
 #include "libImage/image_io.hpp"
 #include "libImage/image_drawing.hpp"
 
-#include "extras/libNumerics/matrix.h"
 #include "extras/libNumerics/numerics.h"
 #include "extras/sift/library.h"
 

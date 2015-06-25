@@ -57,6 +57,9 @@ public:
   void Unnormalize(Model *model) const;
 private:
     bool symError_;  ///< Use symmetric error or transfer error in image 2?
+
+    void algo7pt(const Mat& A, std::vector<Mat> *Fs) const;
+    void algo8pt(const Mat& A, std::vector<Mat> *Fs) const;
 };
 
 }  // namespace orsa

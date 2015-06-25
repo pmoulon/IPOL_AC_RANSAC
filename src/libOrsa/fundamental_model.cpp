@@ -77,15 +77,6 @@ static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
   }
 }
 
-/// Determinant of 3x3 matrix expressed by its columns (v1 v2 v3).
-inline double det3(const OrsaModel::Vec& v1,
-                   const OrsaModel::Vec& v2,
-                   const OrsaModel::Vec& v3){
-    return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
-           v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
-           v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
-}
-
 void FundamentalModel::Fit(const std::vector<int> &indices,
                            std::vector<Mat> *Fs) const {
   assert(2 == x1_.nrow());
@@ -97,46 +88,10 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
   Mat A(indices.size(), 9);
   EncodeEpipolarEquation(x1_, x2_, indices, &A);
 
-  if(indices.size() >= 8) { // 8-point algorithm
-    // Without rank constraint
-    libNumerics::vector<double> vecNullspace(9);
-    libNumerics::SVD::Nullspace(A, &vecNullspace, 1, 1);
-    libNumerics::matrix<double> F(3,3);
-    F.read(vecNullspace);
-
-    // Force the rank 2 constraint
-    libNumerics::matrix<double> FRank2(3,3);
-    libNumerics::SVD::EnforceRank2_3x3(F, &FRank2);
-    Fs->push_back(FRank2);
-  } else { // 7-point algorithm
-    // Find the two F matrices in the nullspace of A
-    Mat F1(3,3), F2(3,3);
-    libNumerics::SVD::Nullspace2_Remap33(A,F1,F2);
-    F2 -= F1;
-
-    // Use condition det(F)=0 to determine F: solve det(F1 + t*F2) = 0 for t
-    Vec c1=F1.col(0), c2=F1.col(1), c3=F1.col(2);
-    Vec d1=F2.col(0), d2=F2.col(1), d3=F2.col(2);
-    double P[4] = {
-        det3(c1,c2,c3),
-        det3(d1,c2,c3)+det3(c1,d2,c3)+det3(c1,c2,d3),
-        det3(c1,d2,d3)+det3(d1,c2,d3)+det3(d1,d2,c3),
-        det3(d1,d2,d3)
-    };
-    if(std::abs(P[0]) > std::abs(P[3])) {
-        libNumerics::swap(F1,F2);
-        std::swap(P[0],P[3]);
-        std::swap(P[1],P[2]);
-    }
-
-    // Find roots of polynomial P[3]*t^3 + P[2]*t^2 + P[1]*t + P[0]
-    double roots[3];
-    int num_roots = CubicRoots(P, roots);
-
-    // Build fundamental matrix for each solution
-    for (int s = 0; s < num_roots; ++s)
-      Fs->push_back(F1 + roots[s] * F2);
-  }
+  if(indices.size() < 8)
+    algo7pt(A, Fs);
+  else
+    algo8pt(A, Fs);
 }
 
 /// \param F The fundamental matrix.
@@ -168,6 +123,64 @@ double FundamentalModel::Error(const Mat &F, int index, int* side) const {
     }
   }
   return err;
+}
+
+/// Determinant of 3x3 matrix expressed by its columns (v1 v2 v3).
+inline double det3(const OrsaModel::Vec& v1,
+                   const OrsaModel::Vec& v2,
+                   const OrsaModel::Vec& v3){
+    return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
+           v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
+           v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
+}
+
+/// 7-point algorithm.
+/// \param A Matrix such that f is solution to Af=0
+/// \param Fs Output vector of found F matrices (up to 3)
+void FundamentalModel::algo7pt(const Mat& A, std::vector<Mat> *Fs) const {
+  // Find two F matrices in the nullspace of A
+  Mat F1(3,3), F2(3,3);
+  libNumerics::SVD::Nullspace2_Remap33(A,F1,F2);
+  F2 -= F1;
+
+  // Use condition det(F)=0 to determine F: solve det(F1 + t*F2) = 0 for t
+  Vec c1=F1.col(0), c2=F1.col(1), c3=F1.col(2);
+  Vec d1=F2.col(0), d2=F2.col(1), d3=F2.col(2);
+  double P[4] = {
+    det3(c1,c2,c3),
+    det3(d1,c2,c3)+det3(c1,d2,c3)+det3(c1,c2,d3),
+    det3(c1,d2,d3)+det3(d1,c2,d3)+det3(d1,d2,c3),
+    det3(d1,d2,d3)
+  };
+  if(std::abs(P[0]) > std::abs(P[3])) {
+    libNumerics::swap(F1,F2);
+    std::swap(P[0],P[3]);
+    std::swap(P[1],P[2]);
+  }
+
+  // Find roots of polynomial P[3]*t^3 + P[2]*t^2 + P[1]*t + P[0]
+  double roots[3];
+  int num_roots = CubicRoots(P, roots);
+
+  // Build fundamental matrix for each solution
+  for (int s = 0; s < num_roots; ++s)
+    Fs->push_back(F1 + roots[s]*F2);
+}
+
+/// 8-point algorithm.
+/// \param A Matrix such that f is solution to Af=0
+/// \param Fs Output vector of found F matrix (up to 1)
+void FundamentalModel::algo8pt(const Mat& A, std::vector<Mat> *Fs) const {
+  // Without rank constraint
+  libNumerics::vector<double> vecNullspace(9);
+  libNumerics::SVD::Nullspace(A, &vecNullspace, 1, 1);
+  libNumerics::matrix<double> F(3,3);
+  F.read(vecNullspace);
+
+  // Force the rank 2 constraint
+  libNumerics::matrix<double> F2(3,3);
+  libNumerics::SVD::EnforceRank2_3x3(F, &F2);
+  Fs->push_back(F2);
 }
 
 }  // namespace orsa
