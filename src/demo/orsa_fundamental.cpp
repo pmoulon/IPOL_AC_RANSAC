@@ -25,6 +25,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <utility>
 
 #include "libImage/image.hpp"
 #include "libImage/image_io.hpp"
@@ -43,9 +44,9 @@
 static const int ITER_ORSA=1000;
 
 /// Display average/max error of inliers of fundamental matrix F.
-static void display_stats(const std::vector<Match>& vec_matchings,
-                          const std::vector<int>& vec_inliers,
-                          const libNumerics::matrix<double>& F) {
+static std::pair<double,double> display_stats(const std::vector<Match>& vec_matchings,
+                                              const std::vector<int>& vec_inliers,
+                                              const libNumerics::matrix<double>& F) {
     std::vector<int>::const_iterator it=vec_inliers.begin();
     double l2=0, linf=0;
     for(; it!=vec_inliers.end(); ++it) {
@@ -59,9 +60,9 @@ static void display_stats(const std::vector<Match>& vec_matchings,
       if(linf < e)
         linf = e;
     }
-    std::cout << "Average/max error: "
-              << sqrt(l2/vec_inliers.size()) << "/"
-              << sqrt(linf) <<std::endl;
+    std::pair<double,double> err(sqrt(l2/vec_inliers.size()),sqrt(linf));
+    std::cout << "Average/max error: " << err.first << "/" << err.second <<std::endl;
+    return err;
 }
 
 /// ORSA fundamental estimation
@@ -90,12 +91,18 @@ bool ORSA(const std::vector<Match>& vec_matchings, int w1,int h1, int w2,int h2,
 
   if(model.orsa(vec_inliers, ITER_ORSA, &precision, &F, true)>0.0)
     return false;
+  std::pair<double,double> err; // (RMSE,max)
   std::cout << "Before refinement: ";
-  display_stats(vec_matchings, vec_inliers, F);
-  if( model.ComputeModel(vec_inliers,&F) ) // Re-estimate with all inliers
+  err = display_stats(vec_matchings, vec_inliers, F);
+  libNumerics::matrix<double> F2(3,3);
+  if( model.ComputeModel(vec_inliers,&F2) ) // Re-estimate with all inliers
   {
     std::cout << "After  refinement: ";
-    display_stats(vec_matchings, vec_inliers, F);
+    double maxBefore = err.second;
+    if(display_stats(vec_matchings, vec_inliers, F2).first <= maxBefore)
+      F = F2;
+    else
+      std::cerr << "Warning: error after refinement is too large, thus ignored" <<std::endl;
   } else
     std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
   return true;
