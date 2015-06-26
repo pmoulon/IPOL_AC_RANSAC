@@ -170,6 +170,7 @@ int main(int argc, char **argv)
     double precision=0;
     cmd.add( make_option('c',region,"cut") );
     cmd.add( make_option('p',precision, "prec") );
+    cmd.add( make_switch('r', "read") );
     float fSiftRatio=0.6f;
     cmd.add( make_option('s',fSiftRatio, "sift") );
     try {
@@ -183,6 +184,7 @@ int main(int argc, char **argv)
               << "[-c|--cut geom] "
               << "[-p|--prec precision] "
               << "[-s|--sift siftRatio] "
+              << "[-r|--read] "
               << "imgInA imgInB "
               << "allMatches.txt orsaMatches.txt "
               << "[imgInliers imgOutliers [imgMosaic "
@@ -219,9 +221,18 @@ int main(int argc, char **argv)
   libs::convertImage(image1, &image1Gray);
   libs::convertImage(image2, &image2Gray);
 
+  // Find matches with SIFT or read correspondence file
   std::vector<Match> vec_matchings;
-  SIFT(image1Gray, image2Gray, vec_matchings, fSiftRatio,
-       bUseRegion? &region: 0);
+  if(cmd.used('r')) {
+    if(Match::loadMatch(argv[3], vec_matchings))
+      std::cout << "Read " <<vec_matchings.size()<< " matches" <<std::endl;
+    else {
+      std::cerr << "Failed reading matches from " << argv[3] <<std::endl;
+      return 1;
+    }
+  } else
+      SIFT(image1Gray, image2Gray, vec_matchings, fSiftRatio,
+           bUseRegion? &region: 0);
 
   if(bUseRegion) {
       Image<RGBColor> image = image1;
@@ -234,7 +245,7 @@ int main(int argc, char **argv)
   rm_duplicates(vec_matchings);
 
   // Save match files
-  if(! Match::saveMatch(argv[3], vec_matchings)) {
+  if(! cmd.used('r') && ! Match::saveMatch(argv[3], vec_matchings)) {
     std::cerr << "Failed saving matches into " <<argv[3] <<std::endl;
     return 1;
   }
