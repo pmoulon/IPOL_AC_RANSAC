@@ -223,6 +223,19 @@ libNumerics::matrix<double> zoomtrans(double z, double dx, double dy) {
     return T;
 }
 
+
+/// Draw endpoints of the match in concatenated image.
+static void draw_points(const Match& m,  RGBColor col, Image<RGBColor>* im,
+                        const libNumerics::matrix<double>& T1,
+                        const libNumerics::matrix<double>& T2) {
+    double x1=m.x1, y1=m.y1, x2=m.x2, y2=m.y2;
+    TransformH(T1, x1,y1);
+    TransformH(T2, x2,y2);
+    libs::DrawCircle((int)x1,(int)y1, 2, col, im);
+    libs::DrawCircle((int)x2,(int)y2, 2, col, im);
+}
+
+
 int main(int argc, char **argv)
 {
   double precision=0;
@@ -303,9 +316,9 @@ int main(int argc, char **argv)
 
   if(argc>=6) // Output images
   {
-    int w = std::max(w1,w2);
+    int w=std::max(w1,w2), h=std::max(h1,h2);
     float z = w/(float)(w1+w2); //Set width as max of two images
-    Image<unsigned char> concat(w, int(z*std::max(h1,h2)), 255);
+    Image<unsigned char> concat(w, int(z*h), 255);
     libNumerics::matrix<double> T1=zoomtrans(z, 0,   (concat.Height()-h1*z)/2);
     libNumerics::matrix<double> T2=zoomtrans(z, w1*z,(concat.Height()-h2*z)/2);
     Warp(image1Gray, T1, image2Gray, T2, concat);
@@ -321,28 +334,24 @@ int main(int argc, char **argv)
       libs::WriteImage(argv[5], in);
       libs::WriteImage(argv[6], out);
     }
-    if(ok && argc!=7) // Show (mini) epipolar lines
+    if(argc!=7) // Show (mini) epipolar lines
     {
       Image<RGBColor> im;
       libs::convertImage(concat, &im);
+      libs::DrawLine(int(w1*z),0, int(w1*z),int(concat.Height()), BLUE, &im);
       const double margin1 = sqrt((double)w1*w1+h1*h1) *.02;
       const double margin2 = sqrt((double)w2*w2+h2*h2) *.02;
+      // Draw in red outliers
       for(size_t index = 0; index < vec_matchings.size(); ++index)
+        if(std::find(vec_inliers.begin(),vec_inliers.end(),index) == vec_inliers.end())
+          draw_points(vec_matchings[index], RED, &im, T1, T2);
+      // Draw in green inliers and small epipolar lines
+      for(it=vec_inliers.begin(); it!=vec_inliers.end(); ++it)
       {
-        bool inlier = (std::find(vec_inliers.begin(),vec_inliers.end(),index) !=
-                       vec_inliers.end());
-        RGBColor col = (inlier? GREEN: RED);
-        const Match& m = vec_matchings[index];
-        double x1=m.x1, y1=m.y1, x2=m.x2, y2=m.y2;
-        TransformH(T1, x1,y1);
-        TransformH(T2, x2,y2);
-        libs::DrawCircle((int)x1,(int)y1, 2, col, &im);
-        libs::DrawCircle((int)x2,(int)y2, 2, col, &im);
-        if(inlier)
-        {
-          draw_small_epi(F,     inv(m), T1, margin1, &im);
-          draw_small_epi(F.t(),     m,  T2, margin2, &im);
-        }
+        const Match& m = vec_matchings[*it];
+        draw_points(m, GREEN, &im, T1, T2);
+        draw_small_epi(F,     inv(m), T1, margin1, &im);
+        draw_small_epi(F.t(),     m,  T2, margin2, &im);
       }
       libs::WriteImage(argv[argc-1], im);
     }
