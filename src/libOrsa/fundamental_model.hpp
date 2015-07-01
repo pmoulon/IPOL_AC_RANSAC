@@ -60,6 +60,7 @@ private:
 
     void algo7pt(const Mat& A, std::vector<Mat> *Fs) const;
     void algo8pt(const Mat& A, std::vector<Mat> *Fs) const;
+    void checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const;
 };
 
 }  // namespace orsa

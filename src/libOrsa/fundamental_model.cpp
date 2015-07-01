@@ -26,6 +26,11 @@
 
 namespace orsa {
 
+/// Min product of norms of two collinear vectors to be considered positive. Below that
+/// threshold, one of the vectors is considered as too small to be reliable. This is used
+/// in FundamentalModel::checkF.
+static const double MIN_PRODUCT_NORMS=1e-5;
+
 /// Constructor, computing logalpha0_
 FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
                                    const Mat &x2, int w2, int h2,
@@ -88,9 +93,10 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
   Mat A(indices.size(), 9);
   EncodeEpipolarEquation(x1_, x2_, indices, &A);
 
-  if(indices.size() < 8)
+  if(indices.size() < 8) {
     algo7pt(A, Fs);
-  else
+    checkF(indices, Fs);
+  } else
     algo8pt(A, Fs);
 }
 
@@ -181,6 +187,49 @@ void FundamentalModel::algo8pt(const Mat& A, std::vector<Mat> *Fs) const {
   libNumerics::matrix<double> F2(3,3);
   libNumerics::SVD::EnforceRank2_3x3(F, &F2);
   Fs->push_back(F2);
+}
+
+/// Return left epipole of matrix F.
+static OrsaModel::Vec epipole(const OrsaModel::Mat& F) {
+    OrsaModel::Vec e(3), e2(3);
+    double norm=-1;
+    for(int i=0; i<3; i++)
+        for(int j=i+1; j<3; j++) {
+            e2 = cross(F.col(i),F.col(j));
+            double norm2=e2.qnorm();
+            if(norm < norm2) {
+                norm = norm2;
+                e = e2;
+            }
+        }
+    return e;
+}
+
+/// Filter out F matrices that are not possible.
+void FundamentalModel::checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const {
+    for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
+        Vec e = epipole(*F);
+        e /= sqrt( e.qnorm() );
+        std::vector<int>::const_iterator it=indices.begin();
+        do {
+            int j=*it;
+            Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
+            Vec exL = cross(e,xL);
+            Vec FxR = *F * xR;
+            double d = dot(exL,FxR);
+            double t = sqrt(xL.qnorm()*xR.qnorm());
+            if(d<=t*MIN_PRODUCT_NORMS) {
+                if(it==indices.begin() && d<-t*MIN_PRODUCT_NORMS)
+                    e = -e;
+                else
+                    break;
+            }
+        } while(++it != indices.end());
+        if(it==indices.end())
+            ++F;
+        else
+            F = Fs->erase(F);
+    }
 }
 
 }  // namespace orsa
