@@ -189,8 +189,8 @@ void FundamentalModel::algo8pt(const Mat& A, std::vector<Mat> *Fs) const {
   Fs->push_back(F2);
 }
 
-/// Return left epipole of matrix F.
-static OrsaModel::Vec epipole(const OrsaModel::Mat& F) {
+/// Return left epipole of matrix F. The returned vector is of norm 1.
+static OrsaModel::Vec leftEpipole(const OrsaModel::Mat& F) {
     OrsaModel::Vec e(3), e2(3);
     double norm=-1;
     for(int i=0; i<3; i++)
@@ -202,14 +202,13 @@ static OrsaModel::Vec epipole(const OrsaModel::Mat& F) {
                 e = e2;
             }
         }
-    return e;
+    return (e/sqrt(norm));
 }
 
 /// Filter out F matrices that are not possible.
 void FundamentalModel::checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const {
     for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
-        Vec e = epipole(*F);
-        e /= sqrt( e.qnorm() );
+        Vec e = leftEpipole(*F);
         std::vector<int>::const_iterator it=indices.begin();
         do {
             int j=*it;
