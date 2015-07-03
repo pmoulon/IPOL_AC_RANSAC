@@ -41,7 +41,7 @@
 #include "demo/cmdLine.h"
 
 /// Number of random samples in ORSA
-static const int ITER_ORSA=1000;
+static const int ITER_ORSA=10000;
 
 /// Display average/max error of inliers of fundamental matrix F.
 static std::pair<double,double> display_stats(const std::vector<Match>& vec_matchings,
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
   }
 
   // Init random seed
-  srand((unsigned int)0);
+  srand((unsigned int)time(0));
 
   Image<RGBColor> image1, image2;
   if(! libs::ReadImage(argv[1], &image1))
