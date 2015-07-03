@@ -47,7 +47,7 @@ FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
 
 /// Unnormalize a given model (from normalized to image space).
 void FundamentalModel::Unnormalize(Model * model) const  {
-    *model = N1_.t() * (*model) * N2_;
+  *model = N1_.t() * (*model) * N2_;
 }
 
 /**
@@ -135,9 +135,9 @@ double FundamentalModel::Error(const Mat &F, int index, int* side) const {
 inline double det3(const OrsaModel::Vec& v1,
                    const OrsaModel::Vec& v2,
                    const OrsaModel::Vec& v3){
-    return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
-           v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
-           v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
+  return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
+         v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
+         v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
 }
 
 /// 7-point algorithm.
@@ -207,28 +207,28 @@ static OrsaModel::Vec leftEpipole(const OrsaModel::Mat& F) {
 
 /// Filter out F matrices that are not possible.
 void FundamentalModel::checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const {
-    for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
-        Vec e = leftEpipole(*F);
-        std::vector<int>::const_iterator it=indices.begin();
-        do {
-            int j=*it;
-            Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
-            Vec exL = cross(e,xL);
-            Vec FxR = *F * xR;
-            double d = dot(exL,FxR);
-            double t = sqrt(xL.qnorm()*xR.qnorm());
-            if(d<=t*MIN_PRODUCT_NORMS) {
-                if(it==indices.begin() && d<-t*MIN_PRODUCT_NORMS)
-                    e = -e;
-                else
-                    break;
-            }
-        } while(++it != indices.end());
-        if(it==indices.end())
-            ++F;
+  for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
+    Vec e = leftEpipole(*F);
+    std::vector<int>::const_iterator it=indices.begin();
+    do {
+      int j=*it;
+      Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
+      Vec exL = cross(e,xL);
+      Vec FxR = *F * xR;
+      double d = dot(exL,FxR);
+      double t = sqrt(xL.qnorm()*xR.qnorm());
+      if(d<=t*MIN_PRODUCT_NORMS) {
+        if(it==indices.begin() && d<-t*MIN_PRODUCT_NORMS)
+          e = -e;
         else
-            F = Fs->erase(F);
-    }
+          break;
+      }
+    } while(++it != indices.end());
+    if(it==indices.end())
+      ++F;
+    else
+      F = Fs->erase(F);
+  }
 }
 
 }  // namespace orsa
