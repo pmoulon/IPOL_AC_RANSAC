@@ -4,8 +4,7 @@ Instructions to build and run the orsa_homography demo.
 This project relies on CMake[1] system to build and test the code.
 
 LINUX/MAC :
-  go to OrsaHomography directory.
-  $ cd .../OrsaHomography
+  $ cd .../orsa-fundamental_1.0
   $ mkdir Build
   $ cd Build
   $ cmake -D CMAKE_BUILD_TYPE:string=Release ../src
@@ -20,9 +19,9 @@ WINDOWS :
   
   Fill the blank path.
   "Where is the source code :" (where the general CMakeLists.txt is).
-    => OrsaHomography/src
+    => orsa-fundamental_1.0/src
   "Where to build the binaries:" (where build project and object files will be).
-    => OrsaHomography/build
+    => orsa-fundamental_1.0/build
     
   Press Configure. (Select your IDE. ie, Visual Studio 10 Win64)
   Press Generate.
@@ -39,23 +38,24 @@ http://cmake.org
 
 # USAGE
 Go to the build folder. The executable is in the "demo" subfolder.
-Usage: demo_orsa_homography [-c|--cut geom] [-p|--prec precision] [-s|--sift siftRatio] imgInA imgInB allMatches.txt orsaMatches.txt [imgInliers imgOutliers [imgMosaic [imgMosaicA imgMosaicB]]
-- -c,--cut geom: is the cut region of imgInA: wxh+x+y
-     = rectangle of corners (x,y) and (x+w,y+h)
+Usage: ./demo/demo_orsa_fundamental imgInA imgInB [-p|--prec precision] [-s|--sift siftRatio] [-r|--read] allMatches.txt orsaMatches.txt [imgInliers imgOutliers] [imgEpipolar]
+- imgInA, imgInB: the two input image (JPG or PNG format)
 - -p,--prec precision: max precision (in pixels) of registration (0=arbitrary)
 - -s,--sift siftRatio: SIFT distance ratio of descriptors (default: 0.6)
-- imgInA, imgInB: the two input image (JPG or PNG format)
-- allMatches.txt: output text file of the form "x1 y1 x2 y2"
-- orsaMatches.txt: same, but only with inliers.
+- -r,--read: Read file of matches allMatches.txt, do not compute SIFT points
+- allMatches.txt: output (input if option -r) text file of form "x1 y1 x2 y2"
+- orsaMatches.txt: output, but only with inliers.
 - imgInliers (optional): output image showing inliers
 - imgOutliers (optional): output image showing outliers and their error
-- imgMosaic (optional): output mosaic blending the two input images.
-- imgMosaicA, imgMosaicB (optional): output warped image
+- imgEpipolar (optional): output image with small epipolar lines
 
 # EXAMPLE
 Example data are in folder 'data'.
 - Try it:
- demo_orsa_homography carc1.jpg carc2.jpg all.txt in.txt in.jpg out.jpg pano.jpg
-- Compare image 'pano.jpg' with reference image 'carc12.jpg'
-- Look at inliers 'in.jpg' and outliers 'out.jpg'
-- Increase the SIFT ratio to increase outliers with option '-s 0.8'
+ demo_orsa_fundamental carcassonne1.jpg carcassonne2.jpg all.txt in.txt in.png out.png epi.png
+- It should find around 310 inliers. Example of last output lines after a run:
+  nfa=-626.341 inliers=313 precision=1.10528 im2 (iter=641,sample=145,135,104,99,43,109,18)
+  Before refinement: Average/max error: 0.470291/1.10528
+  After  refinement: Average/max error: 0.388414/1.27198
+  F=[ -9.45557e-10 6.79737e-08 -7.2541e-06;  -9.74364e-08 9.55089e-09 0.00136427;  2.76561e-05 -0.00135752 0.0217882 ]
+- Compare visually the output images in.png, out.png, and epi.png with the stored PNG images in folder 'data'.
