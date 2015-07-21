@@ -10,6 +10,10 @@ IF(UNIX)
                           COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
 ENDIF(UNIX)
 
+IF(MSVC)
+    ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF(MSVC)
+
 TARGET_LINK_LIBRARIES(Orsa Numerics)
 
 #----------

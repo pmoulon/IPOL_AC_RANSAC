@@ -34,7 +34,7 @@ namespace orsa {
 /// The number of roots is returned.
 template<typename Real>
 int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
-    const float eps = std::numeric_limits<Real>::epsilon();
+    const Real eps = std::numeric_limits<Real>::epsilon();
     a /= 3;
     Real p = (b-3*a*a)/3;
     Real q = (2*a*a*a - a*b + c)/2;
@@ -43,7 +43,7 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
     Real tolp = std::max(std::abs(b),std::abs(3*a*a));
     int n = (d>eps*std::max(p*p*tolp,std::abs(q)*tolq)? 1: 3);
     if(n==1) { // Single root: Cardano's formula
-        d = std::pow(std::abs(q)+std::sqrt(d), 1/3.0);
+        d = std::pow(std::abs(q)+std::sqrt(d), 1/(Real)3);
         x[0] = d - p/d;
         if(q>0)
             x[0] = -x[0];
@@ -54,9 +54,9 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real x[3]) {
         } else {
             p = std::sqrt(-p);
             q /= p*p*p;
-            d = (q<=-1)? M_PI: (q>=1)? 0: std::acos(q);
+            d = Real((q<=-1)? M_PI: (q>=1)? 0: std::acos(q));
             for(int i=0; i<3; i++)
-                x[i] = -2*p*std::cos((d+2*M_PI*i)/3);
+                x[i] = Real(-2*p*std::cos((d+2*M_PI*i)/3));
         }
     }
     for(int i=0; i<n; i++)

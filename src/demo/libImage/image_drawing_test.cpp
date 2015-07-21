@@ -18,16 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#define _USE_MATH_DEFINES // For Windows (M_PI)
+#include <math.h>
+
 #include "libImage/image.hpp"
 #include "libImage/pixelTypes.hpp"
 #include "libImage/image_drawing.hpp"
 #include "testing/testing.h"
 using namespace libs;
-
-#define _USE_MATH_DEFINES // For Windows (M_PI)
-#include <math.h>
-
-
 
 // Horizontal / Vertical scanlines
 // Assert that pixels was drawn at the good place
@@ -134,8 +132,8 @@ TEST(ImageDrawing, Circle) {
   DrawCircle(x, y, radius, (unsigned char)255, &image);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for ( int j = 0; j < (int)image.Height(); ++j)
+  for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
       EXPECT_NEAR(radius, distance, 1.0f);
@@ -158,8 +156,8 @@ TEST(ImageDrawing, Ellipse) {
   DrawEllipse(x, y, radius, radius, (unsigned char)255, &image, (double)angle);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for ( int j = 0; j < (int)image.Height(); ++j)
+  for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
       EXPECT_NEAR(radius, distance, 1.0f);
@@ -182,8 +180,8 @@ TEST(ImageDrawing, RotatedEllipse) {
   DrawEllipse(x, y, radius, radius/2, (unsigned char)255, &image, M_PI/4.0);
 
   // Distance checking :
-  for ( int j = 0; j < image.Height(); ++j)
-  for ( int i = 0; i < image.Width(); ++i) {
+  for ( int j = 0; j < (int)image.Height(); ++j)
+  for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
       EXPECT_EQ( radius+1 >= distance && radius/2.0-1 <= distance, true);

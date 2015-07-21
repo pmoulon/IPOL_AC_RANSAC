@@ -20,6 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _USE_MATH_DEFINES //For Windows (M_PI)
 #include "libOrsa/fundamental_model.hpp"
 #include "libOrsa/cubicRoots.h"
 #include "extras/libNumerics/numerics.h"
