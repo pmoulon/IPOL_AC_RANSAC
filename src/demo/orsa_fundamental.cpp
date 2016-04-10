@@ -251,7 +251,7 @@ int main(int argc, char **argv)
     std::cerr << s << std::endl;
     return 1;
   }
- if(argc!=5 && argc!=6 && argc!=7 && argc!=8) {
+  if(argc!=5 && argc!=6 && argc!=7 && argc!=8) {
     std::cerr << "Usage: " << argv[0] << " imgInA imgInB "
               << "[-p|--prec precision] "
               << "[-s|--sift siftRatio] "
