@@ -7,7 +7,7 @@ endif (OPENMP_FOUND)
 
 # Executable demo to estimate the fundamental matrix from SIFT matches
 ADD_EXECUTABLE(demo_orsa_fundamental
-               orsa_fundamental.cpp
+               demo_orsa_fundamental.cpp
                fundamental_graphical_output.cpp
                Rect.cpp)
 TARGET_LINK_LIBRARIES(demo_orsa_fundamental Orsa image sift)
@@ -22,15 +22,3 @@ IF(UNIX)
     SET_TARGET_PROPERTIES(put_epipolar PROPERTIES
                           COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
 ENDIF(UNIX)
-
-INSTALL(FILES CMakeLists.txt
-              cmdLine.h
-              orsa_fundamental.cpp
-              fundamental_graphical_output.hpp
-              fundamental_graphical_output.cpp
-              put_epipolar.cpp
-              Rect.hpp
-              Rect.cpp
-              siftMatch.hpp
-              warping.hpp
-        DESTINATION src/demo)

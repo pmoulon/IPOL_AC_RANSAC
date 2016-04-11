@@ -1,6 +1,7 @@
 SET(SRC conditioning.hpp conditioning.cpp
 	    orsa_model.hpp orsa_model.cpp
         fundamental_model.hpp fundamental_model.cpp
+        orsa_fundamental.hpp orsa_fundamental.cpp
         cubicRoots.h)
 
 ADD_LIBRARY(Orsa ${SRC})
