@@ -36,23 +36,23 @@ namespace orsa {
 std::pair<double,double> display_stats(const std::vector<Match>& match,
                                            const std::vector<int>& in,
                                            const matrix<double>& F) {
-std::vector<int>::const_iterator it=in.begin();
-double l2=0, linf=0;
-for(; it!=in.end(); ++it) {
-const Match& m=match[*it];
-      double a = F(0,0) * m.x1 + F(1,0) * m.y1 + F(2,0);
-      double b = F(0,1) * m.x1 + F(1,1) * m.y1 + F(2,1);
-      double c = F(0,2) * m.x1 + F(1,2) * m.y1 + F(2,2);
-      double d = a*m.x2 + b*m.y2 + c;
-      double e =  (d*d) / (a*a + b*b);
-      l2 += e;
-      if(linf < e)
-        linf = e;
-    }
-    std::pair<double,double> err(sqrt(l2/in.size()),sqrt(linf));
-    std::cout << "Average/max error: "
-              << err.first << "/" << err.second <<std::endl;
-    return err;
+  std::vector<int>::const_iterator it=in.begin();
+  double l2=0, linf=0;
+  for(; it!=in.end(); ++it) {
+    const Match& m=match[*it];
+    double a = F(0,0) * m.x1 + F(1,0) * m.y1 + F(2,0);
+    double b = F(0,1) * m.x1 + F(1,1) * m.y1 + F(2,1);
+    double c = F(0,2) * m.x1 + F(1,2) * m.y1 + F(2,2);
+    double d = a*m.x2 + b*m.y2 + c;
+    double e =  (d*d) / (a*a + b*b);
+    l2 += e;
+    if(linf < e)
+      linf = e;
+  }
+  std::pair<double,double> err(sqrt(l2/in.size()),sqrt(linf));
+  std::cout << "Average/max error: "
+            << err.first << "/" << err.second <<std::endl;
+  return err;
 }
 
 /// Estimate the fundamental matrix using ORSA method and refinement.
