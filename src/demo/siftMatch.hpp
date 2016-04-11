@@ -26,6 +26,7 @@
 #include "extras/sift/demo_lib_sift.h"
 #include <istream>
 #include <ostream>
+#include <algorithm>
 
 /// Rectangle in image
 class Geometry {

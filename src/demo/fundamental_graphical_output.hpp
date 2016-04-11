@@ -1,0 +1,40 @@
+/**
+ * @file fundamental_graphical_output.hpp
+ * @brief Graphical output to show fundamental matrix estimation
+ * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * 
+ * Copyright (c) 2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef FUNDAMENTAL_GRAPHICAL_OUTPUT_H
+#define FUNDAMENTAL_GRAPHICAL_OUTPUT_H
+
+#include <vector>
+#include "extras/libMatch/match.h"
+#include "extras/libNumerics/matrix.h"
+#include "libImage/image.hpp"
+
+void fundamental_graphical_output(const Image<unsigned char>& image1,
+                                  const Image<unsigned char>& image2,
+                                  const std::vector<Match>& vec_all,
+                                  std::vector<int> vec_in,
+                                  const libNumerics::matrix<double>* F,
+                                  const char* fileIn,
+                                  const char* fileOut,
+                                  const char* fileEpi);
+
+#endif

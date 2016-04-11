@@ -6,7 +6,10 @@ if (OPENMP_FOUND)
 endif (OPENMP_FOUND)
 
 # Executable demo to estimate the fundamental matrix from SIFT matches
-ADD_EXECUTABLE(demo_orsa_fundamental orsa_fundamental.cpp Rect.cpp)
+ADD_EXECUTABLE(demo_orsa_fundamental
+               orsa_fundamental.cpp
+               fundamental_graphical_output.cpp
+               Rect.cpp)
 TARGET_LINK_LIBRARIES(demo_orsa_fundamental Orsa image sift)
 
 # Utility to overlay points and lines on images (used by IPOL demo)
@@ -23,6 +26,8 @@ ENDIF(UNIX)
 INSTALL(FILES CMakeLists.txt
               cmdLine.h
               orsa_fundamental.cpp
+              fundamental_graphical_output.hpp
+              fundamental_graphical_output.cpp
               put_epipolar.cpp
               Rect.hpp
               Rect.cpp
