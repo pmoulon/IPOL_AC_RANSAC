@@ -25,14 +25,12 @@
 
 #include <iostream>
 
-#include "extras/sift/library.h"
-
 #include "libImage/image_io.hpp"
 #include "libOrsa/orsa_fundamental.hpp"
 
-#include "demo/cmdLine.h"
-#include "demo/siftMatch.hpp"
-#include "demo/fundamental_graphical_output.hpp"
+#include "cmdLine.h"
+#include "siftMatch.hpp"
+#include "fundamental_graphical_output.hpp"
 
 /// Number of random samples in ORSA
 static const int ITER_ORSA=10000;
@@ -107,7 +105,8 @@ int main(int argc, char **argv)
   std::vector<int>::const_iterator it = vec_inliers.begin();
   for(; it != vec_inliers.end(); it++)
     good_match.push_back(matchings[*it]);
-  if(! Match::saveMatch(argv[4], good_match)) {
+  if(! Match::saveMatch(argv[4], good_match))
+  {
     std::cerr << "Failed saving matches into " <<argv[4] <<std::endl;
     return 1;
   }

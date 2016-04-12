@@ -1,6 +1,7 @@
 PROJECT(libNumerics)
 
 SET(SRC 
+        cubicRoots.h
         ccmath_svd.cpp
         matrix.cpp matrix.h
         numerics.cpp numerics.h
@@ -13,10 +14,8 @@ IF(UNIX)
                           COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
 ENDIF(UNIX)
 
-INSTALL(FILES CMakeLists.txt ${SRC} DESTINATION src/extras/libNumerics)
-
 #----------
 # UNIT TEST
 #----------
+UNIT_TEST(cubicRoots Numerics)
 UNIT_TEST(ccmath_svd Numerics)
-INSTALL(FILES ccmath_svd_test.cpp DESTINATION src/extras/libNumerics)

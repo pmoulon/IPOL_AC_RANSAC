@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES //For Windows (M_PI)
 #include <algorithm>
 #include "CppUnitLite/TestHarness.h"
-#include "libOrsa/cubicRoots.h"
+#include "cubicRoots.h"
 #include "testing/testing.h"
 #include <cerrno>
 #include <cstring>

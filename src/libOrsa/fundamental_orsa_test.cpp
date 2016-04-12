@@ -22,7 +22,6 @@
 #include <algorithm>
 
 #include "libOrsa/fundamental_model.hpp"
-#include "extras/libNumerics/matrix.h"
 #include "testing/testing.h"
 
 typedef libNumerics::matrix<double> Mat;

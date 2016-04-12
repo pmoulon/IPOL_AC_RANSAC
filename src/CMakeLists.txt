@@ -25,17 +25,6 @@ MACRO (UNIT_TEST NAME EXTRA_LIBS)
   ADD_TEST(${NAME}_test ${NAME}_test)
 ENDMACRO (UNIT_TEST)
 
-# Third parties libraries
-ADD_SUBDIRECTORY(third_party)
-
-# Orsa Core library
-ADD_SUBDIRECTORY(libOrsa)
-
-# External libraries required for the demo
-ADD_SUBDIRECTORY(extras)
-
-# Demo directory
-ADD_SUBDIRECTORY(demo)
-
-INSTALL(FILES CMakeLists.txt DESTINATION src)
-INSTALL(FILES testing/testing.h DESTINATION src/testing)
+ADD_SUBDIRECTORY(third_party) # Third party libraries
+ADD_SUBDIRECTORY(libOrsa)     # Orsa Core library
+ADD_SUBDIRECTORY(demo)        # Demo directory

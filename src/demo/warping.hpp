@@ -24,7 +24,7 @@
 #define WARPING_H
 
 #include <limits>
-#include "extras/libNumerics/numerics.h"
+#include "libOrsa/libNumerics/numerics.h"
 #include "libImage/sample.hpp"
 #include "demo/Rect.hpp"
 

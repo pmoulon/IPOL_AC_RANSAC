@@ -24,7 +24,7 @@
 #define ORSA_FUNDAMENTAL_H
 
 #include <vector>
-#include "extras/libNumerics/matrix.h"
+#include "libNumerics/matrix.h"
 
 class Match;
 

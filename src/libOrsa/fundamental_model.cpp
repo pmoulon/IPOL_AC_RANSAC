@@ -21,9 +21,9 @@
  */
 
 #define _USE_MATH_DEFINES //For Windows (M_PI)
-#include "libOrsa/fundamental_model.hpp"
-#include "libOrsa/cubicRoots.h"
-#include "extras/libNumerics/numerics.h"
+#include "fundamental_model.hpp"
+#include "libNumerics/cubicRoots.h"
+#include "libNumerics/numerics.h"
 
 namespace orsa {
 

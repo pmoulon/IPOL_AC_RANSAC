@@ -10,7 +10,7 @@ ADD_EXECUTABLE(demo_orsa_fundamental
                demo_orsa_fundamental.cpp
                fundamental_graphical_output.cpp
                Rect.cpp)
-TARGET_LINK_LIBRARIES(demo_orsa_fundamental Orsa image sift)
+TARGET_LINK_LIBRARIES(demo_orsa_fundamental Orsa image SiftAnatomy)
 
 # Utility to overlay points and lines on images (used by IPOL demo)
 ADD_EXECUTABLE(put_epipolar put_epipolar.cpp Rect.cpp)

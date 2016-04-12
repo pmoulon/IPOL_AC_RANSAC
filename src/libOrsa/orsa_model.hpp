@@ -24,7 +24,7 @@
 #define ORSA_MODEL_H
 
 #include <vector>
-#include "extras/libNumerics/matrix.h"
+#include "libNumerics/matrix.h"
 
 namespace orsa {
 

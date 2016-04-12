@@ -2,7 +2,7 @@ SET(SRC conditioning.hpp conditioning.cpp
 	    orsa_model.hpp orsa_model.cpp
         fundamental_model.hpp fundamental_model.cpp
         orsa_fundamental.hpp orsa_fundamental.cpp
-        cubicRoots.h)
+        match.hpp)
 
 ADD_LIBRARY(Orsa ${SRC})
 
@@ -15,12 +15,13 @@ IF(MSVC)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF(MSVC)
 
+ADD_SUBDIRECTORY(libNumerics)
+
 TARGET_LINK_LIBRARIES(Orsa Numerics)
 
 #----------
 # UNIT TEST
 #----------
 
-UNIT_TEST(cubicRoots "Orsa")
 UNIT_TEST(fundamental_model "Orsa")
 UNIT_TEST(fundamental_orsa "Orsa")

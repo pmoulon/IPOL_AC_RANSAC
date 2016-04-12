@@ -24,8 +24,8 @@
 #define FUNDAMENTAL_MODEL_H_
 
 #include <vector>
-#include "libOrsa/orsa_model.hpp"
-#include "extras/libNumerics/matrix.h"
+#include "orsa_model.hpp"
+#include "libNumerics/matrix.h"
 
 namespace orsa {
 

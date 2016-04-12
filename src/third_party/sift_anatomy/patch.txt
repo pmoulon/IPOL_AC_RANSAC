@@ -1,0 +1,12 @@
+*** lib_keypoint.h~	2016-04-11 12:18:40.693754672 +0200
+--- lib_keypoint.h	2016-04-12 11:35:09.351602203 +0200
+***************
+*** 99,104 ****
+--- 99,105 ----
+  
+  struct keypoint* sift_malloc_keypoint_from_model_and_copy(const struct keypoint* key);
+  
++ void sift_free_keypoint(struct keypoint* key);
+  
+  /** @brief list of pointers to keypoint structures (variable size list)
+   *      "vector" of keypoint struct (list of variable size)

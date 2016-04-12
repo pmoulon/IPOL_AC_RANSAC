@@ -1,6 +1,6 @@
 /**
- * @file LWImage.cpp
- * @brief Light weight image structure
+ * @file match.hpp
+ * @brief Match between two image points.
  * @author Pascal Monasse, Pierre Moulon
  *
  * Copyright (c) 2010-2011 Pascal Monasse, Pierre Moulon
