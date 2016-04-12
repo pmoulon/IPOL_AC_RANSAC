@@ -19,11 +19,22 @@ http://dx.doi.org/10.5201/ipol.2012.mmm-oh
 - Licensing: See LICENSE.txt file
 - Build, usage: See BUILD.txt file.
 
--Reviewed files in IPOL:
-src/libOrsa/cubicRoots.h
+- Reviewed files in IPOL:
+src/libOrsa/libNumerics/cubicRoots.h
 src/libOrsa/fundamental_model.hpp
 src/libOrsa/fundamental_model.cpp
-src/demo/orsa_fundamental.cpp
+src/libOrsa/orsa_fundamental.hpp
+src/libOrsa/orsa_fundamental.cpp
+src/demo/demo_orsa_fundamental.cpp
+src/demo/fundamental_graphical_output.hpp
+src/demo/fundamental_graphical_output.cpp
 src/demo/put_epipolar.cpp
 src/demo/Rect.hpp
 src/demo/Rect.cpp
+
+- The SIFT algorithm used by the demo is based on
+  sift_anatomy_20141201
+from the article
+  Ives Rey Otero, and Mauricio Delbracio, Anatomy of the SIFT Method,
+  Image Processing On Line, 4 (2014), pp. 370–396.
+  http://dx.doi.org/10.5201/ipol.2014.82
