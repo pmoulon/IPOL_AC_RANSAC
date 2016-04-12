@@ -38,3 +38,18 @@ from the article
   Ives Rey Otero, and Mauricio Delbracio, Anatomy of the SIFT Method,
   Image Processing On Line, 4 (2014), pp. 370–396.
   http://dx.doi.org/10.5201/ipol.2014.82
+
+- Reusing the libOrsa library:
+This library itself is self-contained and has no external dependencies. To reuse
+it in your own program, just copy the folder along with its sub-folder
+libNumerics in your program. You may need to remove the UNIT_TEST instructions
+in the CMakeLists.txt files if you do not want to take along the third-party
+CppUnitLite. The simplest usage is through the function
+  bool orsa_fundamental(const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIter,
+                        libNumerics::matrix<double>& F,
+                        std::vector<int>& vec_inliers);
+A lower-level function, just applying ORSA with no refinement:
+  FundamentalModel model(xA, w1, h1, xB, w2, h2);
+  model.orsa(vec_inliers, 10000, 0, &F);
