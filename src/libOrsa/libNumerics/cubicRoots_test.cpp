@@ -2,7 +2,6 @@
 #include <algorithm>
 #include "CppUnitLite/TestHarness.h"
 #include "cubicRoots.h"
-#include "testing/testing.h"
 #include <cerrno>
 #include <cstring>
 
@@ -60,8 +59,8 @@ TEST(CubicRoots, SingleRoot) {
         }
         std::cout << std::endl;
     }
-    EXPECT_TRUE(fails*100 <= ITER*PERCENT_FAIL);
-    EXPECT_TRUE(errno==0);
+    CHECK(fails*100 <= ITER*PERCENT_FAIL);
+    CHECK(errno==0);
     if(errno)
         std::cout << strerror(errno) << std::endl;
 }
@@ -96,8 +95,8 @@ TEST(CubicRoots, ThreeRoots) {
             ++fails;
         }
     }
-    EXPECT_TRUE(fails*100 <= ITER*PERCENT_FAIL);
-    EXPECT_TRUE(errno==0);
+    CHECK(fails*100 <= ITER*PERCENT_FAIL);
+    CHECK(errno==0);
     if(errno)
         std::cout << strerror(errno) << std::endl;
 }
@@ -127,8 +126,8 @@ TEST(CubicRoots, TripleRoot) {
             std::cout << std::endl;
         }
     }
-    EXPECT_TRUE(fails*100 <= ITER*PERCENT_FAIL);
-    EXPECT_TRUE(errno==0);
+    CHECK(fails*100 <= ITER*PERCENT_FAIL);
+    CHECK(errno==0);
     if(errno)
         std::cout << strerror(errno) << std::endl;
 }
@@ -178,8 +177,8 @@ TEST(CubicRoots, DoubleRoot) {
             std::cout << std::endl;
         }
     }
-    EXPECT_TRUE(fails*100 <= ITER*PERCENT_FAIL);
-    EXPECT_TRUE(errno==0);
+    CHECK(fails*100 <= ITER*PERCENT_FAIL);
+    CHECK(errno==0);
     if(errno)
         std::cout << strerror(errno) << std::endl;
 }

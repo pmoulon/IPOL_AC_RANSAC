@@ -24,7 +24,7 @@
 #include "libImage/image.hpp"
 #include "libImage/pixelTypes.hpp"
 #include "libImage/image_drawing.hpp"
-#include "testing/testing.h"
+#include "CppUnitLite/TestHarness.h"
 using namespace libs;
 
 // Horizontal / Vertical scanlines
@@ -44,7 +44,7 @@ TEST(ImageDrawing, Scanlines) {
   const int y = 5;
   DrawLine( 0, y, w-1, y, 255, &image);
   for(int i=0; i < w; ++i)
-    EXPECT_EQ( image(y,i), 255);
+    CHECK_EQUAL( image(y,i), 255);
 
   image.fill(0);
 
@@ -57,7 +57,7 @@ TEST(ImageDrawing, Scanlines) {
   const int x = 5;
   DrawLine( x, 0, x, h-1, 255, &image);
   for (int i = 0; i < h; ++i)
-    EXPECT_EQ(image(i,y), 255);
+    CHECK_EQUAL(image(i,y), 255);
 }
 
 TEST(ImageDrawing, Scanlines_RGB) {
@@ -75,7 +75,7 @@ TEST(ImageDrawing, Scanlines_RGB) {
   const int y = 5;
   DrawLine( 0, y, w-1, y, RGBColor(GREEN), &image);
   for(int i=0; i < w; ++i)
-    EXPECT_EQ( image(y,i), RGBColor(GREEN));
+    CHECK_EQUAL( image(y,i), RGBColor(GREEN));
 
   image.fill(RGBColor(BLACK));
 
@@ -88,7 +88,7 @@ TEST(ImageDrawing, Scanlines_RGB) {
   const int x = 5;
   DrawLine( x, 0, x, h-1, RGBColor(YELLOW), &image);
   for (int i = 0; i < h; ++i)
-    EXPECT_EQ(image(i,y), RGBColor(YELLOW));
+    CHECK_EQUAL(image(i,y), RGBColor(YELLOW));
 }
 
 // Lines with a given angle +/-45°
@@ -106,7 +106,7 @@ TEST(ImageDrawing, Lines45) {
 
   DrawLine(0, 0, w-1, h-1, 255, &image);
   for (int i = 0; i < w; ++i)
-    EXPECT_EQ(image(i,i), 255);
+    CHECK_EQUAL(image(i,i), 255);
 
   image.fill(0);
 
@@ -116,7 +116,7 @@ TEST(ImageDrawing, Lines45) {
   //  |/___|_
   DrawLine(0, h-1, w-1, 0, 255, &image);
   for (int i = 0; i < h; ++i)
-    EXPECT_EQ(image(h-1-i,i), 255);
+    CHECK_EQUAL(image(h-1-i,i), 255);
 }
 
 // Draw a circle in an image and assert that all the points are
@@ -136,7 +136,7 @@ TEST(ImageDrawing, Circle) {
   for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
-      EXPECT_NEAR(radius, distance, 1.0f);
+      DOUBLES_EQUAL(radius, distance, 1.0f);
       // Due to discretisation we cannot expect better precision
     }
   }
@@ -160,7 +160,7 @@ TEST(ImageDrawing, Ellipse) {
   for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
-      EXPECT_NEAR(radius, distance, 1.0f);
+      DOUBLES_EQUAL(radius, distance, 1.0f);
       // Due to discretisation we cannot expect better precision
     }
   }
@@ -184,7 +184,7 @@ TEST(ImageDrawing, RotatedEllipse) {
   for ( int i = 0; i < (int)image.Width(); ++i) {
     if (image(j, i) == 255)  {
       const float distance =  sqrt((float)((j-y)*(j-y) + (i-x)*(i-x)));
-      EXPECT_EQ( radius+1 >= distance && radius/2.0-1 <= distance, true);
+      CHECK( radius+1 >= distance && radius/2.0-1 <= distance );
       // Due to discretization we cannot expect better precision
       // Use +-1 to avoid rasterization error.
     }

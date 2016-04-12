@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "libOrsa/fundamental_model.hpp"
-#include "testing/testing.h"
+#include "CppUnitLite/TestHarness.h"
 
 typedef libNumerics::matrix<double> Mat;
 
@@ -62,12 +62,12 @@ TEST(Fundamental_Orsa, Test)
 
   const double expectedPrecision = 1e-8;
   const double & ep = expectedPrecision;
-  EXPECT_NEAR(0.0, F(0,0), ep);
-  EXPECT_NEAR(0.0, F(1,1), ep);
-  EXPECT_NEAR(0.0, F(2,2), ep);
-  EXPECT_NEAR(F(0,1), -F(1,0), ep);
-  EXPECT_NEAR(F(0,2), -F(2,0), ep);
-  EXPECT_NEAR(F(1,2), -F(2,1), ep);
+  DOUBLES_EQUAL(0.0, F(0,0), ep);
+  DOUBLES_EQUAL(0.0, F(1,1), ep);
+  DOUBLES_EQUAL(0.0, F(2,2), ep);
+  DOUBLES_EQUAL(F(0,1), -F(1,0), ep);
+  DOUBLES_EQUAL(F(0,2), -F(2,0), ep);
+  DOUBLES_EQUAL(F(1,2), -F(2,1), ep);
   CHECK_EQUAL(n - 1, vec_inliers.size());
   CHECK_EQUAL(true, std::find(vec_inliers.begin(), vec_inliers.end(), 15) == vec_inliers.end());
 }

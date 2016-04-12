@@ -21,7 +21,6 @@
 #include <iostream>
 #include "CppUnitLite/TestHarness.h"
 #include "libOrsa/fundamental_model.hpp"
-#include "testing/testing.h"
 
 typedef libNumerics::matrix<double> Mat;
 
@@ -79,7 +78,7 @@ TEST(SevenPointTest, EasyCase) {
                        1, 2, 3, 1, 2, 3, 1};
   x2.read(points2);
   typedef orsa::FundamentalModel Model;
-  EXPECT_TRUE(ExpectKernelProperties<Model>(x1, 3, 3, x2, 3, 3));
+  CHECK(ExpectKernelProperties<Model>(x1, 3, 3, x2, 3, 3));
 }
 
 TEST(SevenPointTest, RealCorrespondences) {
@@ -92,7 +91,7 @@ TEST(SevenPointTest, RealCorrespondences) {
   x2.read(points2);
 
   typedef orsa::FundamentalModel Model;
-  EXPECT_TRUE(ExpectKernelProperties<Model>(x1, 1500, 1800, x2, 2200, 1800));
+  CHECK(ExpectKernelProperties<Model>(x1, 1500, 1800, x2, 2200, 1800));
 }
 
 /* ************************************************************************* */

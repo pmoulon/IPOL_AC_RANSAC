@@ -20,7 +20,7 @@
 
 #include "image.hpp"
 #include "pixelTypes.hpp"
-#include "testing/testing.h"
+#include "CppUnitLite/TestHarness.h"
 
 #include <iostream>
 using namespace std;
