@@ -14,7 +14,7 @@ ADD_EXECUTABLE(demo_orsa_homography
                siftMatch.hpp
                warping.cpp warping.hpp
                cmdLine.h)
-TARGET_LINK_LIBRARIES(demo_orsa_homography Orsa image sift)
+TARGET_LINK_LIBRARIES(demo_orsa_homography Orsa image SiftAnatomy)
 
 IF(UNIX)
     SET_TARGET_PROPERTIES(demo_orsa_homography PROPERTIES

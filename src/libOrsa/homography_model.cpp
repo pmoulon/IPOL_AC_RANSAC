@@ -22,7 +22,7 @@
 
 #include "libOrsa/homography_model.hpp"
 #include "libOrsa/conditioning.hpp"
-#include "extras/libNumerics/numerics.h"
+#include "libNumerics/numerics.h"
 
 #include <iostream>
 #include <limits>

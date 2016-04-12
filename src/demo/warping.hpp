@@ -23,7 +23,8 @@
 #ifndef WARPING_H
 #define WARPING_H
 
-#include "extras/libNumerics/homography.h"
+#include <limits>
+#include "libOrsa/libNumerics/homography.h"
 #include "libImage/sample.hpp"
 #include "Rect.hpp"
 
@@ -45,7 +46,7 @@ void Warp(const Image &im, libNumerics::matrix<double> H, Image &out)
     for(int i=0; i<wOut; ++i)
     {
       double xT=i, yT=j;
-      if(TransformH(H, xT, yT) && im.Contains(yT,xT))
+      if(libNumerics::TransformH(H, xT, yT) && im.Contains(yT,xT))
         out(j,i) = libs::SampleLinear(im, (float)yT, (float)xT);
     }
 }
@@ -73,6 +74,7 @@ void Warp(const Image &imA, libNumerics::matrix<double> HA,
     {
       double xA=i, yA=j;
       double xB=i, yB=j;
+      using namespace libNumerics;
       bool bAContrib = TransformH(HA, xA, yA) && imA.Contains(yA,xA);
       bool bBContrib = TransformH(HB, xB, yB) && imB.Contains(yB,xB);
 

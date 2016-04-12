@@ -22,7 +22,7 @@
 
 #include "orsa_homography.hpp"
 #include "homography_model.hpp"
-#include "extras/libNumerics/homography.h"
+#include "libNumerics/homography.h"
 
 #include <iostream>
 

@@ -23,6 +23,7 @@
 #include "homography_graphical_output.hpp"
 #include <algorithm>
 #include <iostream>
+#include "libOrsa/libNumerics/homography.h"
 #include "libImage/image_drawing.hpp"
 #include "libImage/image_io.hpp"
 #include "warping.hpp"

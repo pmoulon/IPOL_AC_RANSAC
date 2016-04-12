@@ -26,7 +26,7 @@
 #include <vector>
 #include <cmath>
 #include "libOrsa/orsa_model.hpp"
-#include "extras/libNumerics/matrix.h"
+#include "libNumerics/matrix.h"
 
 namespace orsa {
 

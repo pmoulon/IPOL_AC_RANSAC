@@ -24,8 +24,8 @@
 #define ORSA_HOMOGRAPHY_H
 
 #include <vector>
-#include "extras/libNumerics/matrix.h"
-#include "extras/libMatch/match.h"
+#include "libNumerics/matrix.h"
+#include "match.hpp"
 
 namespace orsa {
 bool orsa_homography(const std::vector<Match>& vec_matchings,

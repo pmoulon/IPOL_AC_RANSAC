@@ -20,8 +20,8 @@
 
 #include <iostream>
 #include <vector>
-#include "libOrsa/homography_model.hpp"
-#include "extras/libNumerics/matrix.h"
+#include "homography_model.hpp"
+#include "libNumerics/matrix.h"
 #include "testing/testing.h"
 
 TEST(RobustHomographyEstimation, ORSA) {

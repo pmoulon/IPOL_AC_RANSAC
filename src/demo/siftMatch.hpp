@@ -23,7 +23,12 @@
 #ifndef SIFT_MATCH_H
 #define SIFT_MATCH_H
 
-#include "extras/sift/demo_lib_sift.h"
+extern "C" {
+#include "third_party/sift_anatomy/lib_sift_anatomy.h"
+#include "third_party/sift_anatomy/lib_matching.h"
+}
+#include "libOrsa/match.hpp"
+
 #include <istream>
 #include <ostream>
 
@@ -36,7 +41,7 @@ public:
         return (x0<=ix && ix<x1 && y0<=iy && iy<y1);
     }
     bool inside(keypoint k) const {
-        return inside(k.x, k.y);
+        return inside(k.y, k.x); // Weird SiftAnatomy's coordinate system...
     }
 };
 
@@ -60,16 +65,25 @@ std::istream& operator>>(std::istream& str, Geometry& geo) {
     return str;
 }
 
-/// Functor to test inclusion in region
-class OutRegion {
-public:
-    OutRegion(Geometry* r): rect(r) {}
-    bool operator()(const keypoint& k) const {
-        return !rect->inside(k);
-    }
-private:
-    Geometry* rect;
-};
+/// This should be in SiftAnatomy.
+static struct sift_keypoints* sift_anatomy(const float* x, int w, int h,
+                                           const struct sift_parameters* p)
+{
+    struct sift_keypoints *kk[6];
+    for(int i = 0; i < 6; i++)
+        kk[i] = sift_malloc_keypoints();
+    struct sift_scalespace *ss[4];
+
+    struct sift_keypoints* k = sift_anatomy(x, w, h, p, ss, kk);
+
+    for(int i=0; i<6; i++)
+        sift_free_keypoints(kk[i]);
+    for(int i=0; i<4; i++)
+        sift_free_scalespace(ss[i]);
+
+    return k;
+}
+
 
 /// SIFT matches
 static void SIFT(const Image<unsigned char> &im1,
@@ -81,38 +95,61 @@ static void SIFT(const Image<unsigned char> &im1,
     libs::convertImage(im1, &If1);
     libs::convertImage(im2, &If2);
 
-    siftPar param;
-    default_sift_parameters(param);
-    param.MatchRatio = fMatchRatio;
-    param.DoubleImSize=0;
+    for(size_t y=0; y<If1.Height(); y++)
+        for(size_t x=0; x<If1.Width(); x++)
+            If1(y,x)/=256.0f;
+    for(size_t y=0; y<If2.Height(); y++)
+        for(size_t x=0; x<If2.Width(); x++)
+            If2(y,x)/=256.0f;
 
-    // Keypoints in 1st image
-    keypointslist keyp1;
-    compute_sift_keypoints(If1.data(), keyp1, int(If1.Width()), int(If1.Height()), param);
-    std::cout<< "sift:: 1st image: " << keyp1.size() << " keypoints";
+    sift_parameters* param = sift_assign_default_parameters();
+    // Start from octave 0
+    param->delta_min = 1.0;
+    param->sigma_min = 1.6;
+
+    sift_keypoints* keyp1 = sift_anatomy(If1.data(), If1.Width(), If1.Height(),
+                                         param);
+    std::cout<< "sift:: 1st image: " << keyp1->size << " keypoints";
     if(rect) { // Remove points outside region
-        keypointslist::iterator
-            oldEnd=keyp1.end(),
-            newEnd=std::remove_if(keyp1.begin(), oldEnd, OutRegion(rect));
-        std::cout << " (but remove " << std::distance(newEnd,oldEnd)
-                  << " outside " << *rect << ')';
-        keyp1.erase(newEnd,oldEnd);
+        int j=0;
+        for(int i=0; i<keyp1->size; i++)
+            if(rect->inside(*keyp1->list[i]))
+                keyp1->list[j++] = keyp1->list[i];
+            else
+                sift_free_keypoint(keyp1->list[i]);
+        if(j<keyp1->size)
+            std::cout <<" (remove "<< keyp1->size-j <<" outside "<< *rect <<')';
+        keyp1->size = j;
         // Translate points
-        for(keypointslist::iterator it=keyp1.begin(); it!=keyp1.end(); ++it) {
-            it->x -= rect->x0;
-            it->y -= rect->y0;
+        for(int i=0; i<keyp1->size; i++) {
+            keyp1->list[i]->y -= rect->x0; // SiftAnatomy's weird coordinates
+            keyp1->list[i]->x -= rect->y0;
         }
     }
     std::cout << std::endl;
 
-    // Keypoints in 2nd image
-    keypointslist keyp2;
-    compute_sift_keypoints(If2.data(), keyp2, int(If2.Width()), int(If2.Height()), param);
-    std::cout<< "sift:: 2nd image: " << keyp2.size() << " keypoints"<<std::endl;
+    sift_keypoints* keyp2 = sift_anatomy(If2.data(), If2.Width(), If2.Height(),
+                                         param);
+    std::cout<< "sift:: 2nd image: " << keyp2->size << " keypoints"<<std::endl;
 
     // Find putatives matches
-    compute_sift_matches(keyp1, keyp2, vec_matchings, param);
+    sift_keypoints* m1 = sift_malloc_keypoints();
+    sift_keypoints* m2 = sift_malloc_keypoints();
+    sift_keypoints* unused = sift_malloc_keypoints();
+    matching(keyp1, keyp2, m1, m2, unused, fMatchRatio, 1);
+    vec_matchings.clear();
+    for(int i=0; i<m1->size; i++) {
+        // Adapt to SiftAnatomy's weird coordinate system...
+        Match m(m1->list[i]->y, m1->list[i]->x, m2->list[i]->y, m2->list[i]->x);
+        vec_matchings.push_back(m);
+    }
     std::cout << "sift:: matches: " << vec_matchings.size() <<std::endl;
+    free(param);
+    sift_free_keypoints(keyp1);
+    sift_free_keypoints(keyp2);
+    sift_free_keypoints(m1);
+    sift_free_keypoints(m2);
+    sift_free_keypoints(unused);    
 }
 
 /// Remove multiple "same position" matches

@@ -37,7 +37,7 @@ bool IntersectionBox(int w1, int h1, int w2, int h2,
   for(int i=0; i<4; ++i)
   {
     double xT=xCoord[i], yT=yCoord[i];
-    TransformH(H, xT, yT);
+    libNumerics::TransformH(H, xT, yT);
     rect1.growTo(xT,yT);
   }
 

@@ -21,7 +21,7 @@
 #ifndef LIBS_MULTIVIEW_CONDITIONNING_H_
 #define LIBS_MULTIVIEW_CONDITIONNING_H_
 
-#include "extras/libNumerics/matrix.h"
+#include "libNumerics/matrix.h"
 
 //-- Implementation of normalized coordinates.
 // Normalization improve accuracy of results and provide benefits

@@ -21,7 +21,7 @@
 #ifndef TESTING_TESTING_H_
 #define TESTING_TESTING_H_
 
-#include "extras/libNumerics/matrix.h"
+#include "libOrsa/libNumerics/matrix.h"
 #include "third_party/CppUnitLite/TestHarness.h"
 
 #define EXPECT_MATRIX_NEAR(a, b, tolerance) \

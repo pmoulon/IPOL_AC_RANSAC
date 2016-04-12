@@ -24,8 +24,8 @@
 #define HOMOGRAPHY_GRAPHICAL_OUTPUT_H
 
 #include <vector>
-#include "extras/libMatch/match.h"
-#include "extras/libNumerics/matrix.h"
+#include "libOrsa/match.hpp"
+#include "libOrsa/libNumerics/matrix.h"
 #include "libImage/image.hpp"
 #include "libImage/pixelTypes.hpp"
 class Rect;

@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "extras/libNumerics/numerics.h"
+#include "numerics.h"
 #include "testing/testing.h"
 
 static const int NTESTS=100;
