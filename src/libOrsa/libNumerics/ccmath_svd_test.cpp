@@ -21,10 +21,24 @@
  */
 
 #include "numerics.h"
-#include "testing/testing.h"
+#include "CppUnitLite/TestHarness.h"
 
 static const int NTESTS=100;
 static const double EPS=1E-5;
+
+#define EXPECT_MATRIX_NEAR(a, b, tolerance) \
+do { \
+  bool dims_match = (a.nrow() == b.nrow()) && (a.ncol() == b.ncol()); \
+  CHECK_EQUAL(a.nrow(),b.nrow()); \
+  CHECK_EQUAL(a.ncol(),b.ncol()); \
+  if (dims_match) { \
+    for (int r = 0; r < a.nrow(); ++r) { \
+      for (int c = 0; c < a.ncol(); ++c) { \
+        DOUBLES_EQUAL(a(r, c), b(r, c), tolerance); \
+      } \
+    } \
+  } \
+} while(false);
 
 static double max(const libNumerics::matrix<double>& A) {
     double m = A(0,0);

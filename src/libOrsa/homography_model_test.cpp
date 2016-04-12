@@ -21,19 +21,24 @@
 #include <vector>
 #include "homography_model.hpp"
 #include "libNumerics/matrix.h"
-#include "testing/testing.h"
+#include "libNumerics/homography.h"
+#include "CppUnitLite/TestHarness.h"
 
 typedef libNumerics::matrix<double> Mat;
 
-void TransformH(double x, double y, const Mat & H, double & xT, double & yT )
-{
-  Mat x1_H = Mat(3,1);
-  x1_H(0,0) = x; x1_H(1,0) = y; x1_H(2,0) = 1.0;
-  Mat x2h_est = H * x1_H;
-  x2h_est /= x2h_est(2,0); // homogeneous to euclidean
-  xT = x2h_est(0);
-  yT = x2h_est(1);
-}
+#define EXPECT_MATRIX_NEAR(a, b, tolerance) \
+do { \
+  bool dims_match = (a.nrow() == b.nrow()) && (a.ncol() == b.ncol()); \
+  CHECK_EQUAL(a.nrow(),b.nrow()); \
+  CHECK_EQUAL(a.ncol(),b.ncol()); \
+  if (dims_match) { \
+    for (int r = 0; r < a.nrow(); ++r) { \
+      for (int c = 0; c < a.ncol(); ++c) { \
+        DOUBLES_EQUAL(a(r, c), b(r, c), tolerance); \
+      } \
+    } \
+  } \
+} while(false);
 
 TEST(HomographyKernelTest, Fitting) {
   //------------------------//
@@ -66,10 +71,10 @@ TEST(HomographyKernelTest, Fitting) {
 
     bool bFound = false;
     // Transform points by the ground truth homography.
-    Mat y(2,9);
+    Mat y=x;
     for(int k = 0; k < 9; ++k)
     {
-      TransformH(x(0,k), x(1,k), H_gt[i], y(0,k), y(1,k) );
+        libNumerics::TransformH(H_gt[i], y(0,k), y(1,k) );
     }
 
     orsa::HomographyModel kernel(x, 10, 10, y, 10, 10);
@@ -85,7 +90,7 @@ TEST(HomographyKernelTest, Fitting) {
         bFound = true;
       }
     }
-    EXPECT_TRUE(bFound);
+    CHECK(bFound);
   }
 }
 

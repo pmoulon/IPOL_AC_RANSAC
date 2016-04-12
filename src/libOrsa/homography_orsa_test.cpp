@@ -22,7 +22,21 @@
 #include <vector>
 #include "homography_model.hpp"
 #include "libNumerics/matrix.h"
-#include "testing/testing.h"
+#include "CppUnitLite/TestHarness.h"
+
+#define EXPECT_MATRIX_NEAR(a, b, tolerance) \
+do { \
+  bool dims_match = (a.nrow() == b.nrow()) && (a.ncol() == b.ncol()); \
+  CHECK_EQUAL(a.nrow(),b.nrow()); \
+  CHECK_EQUAL(a.ncol(),b.ncol()); \
+  if (dims_match) { \
+    for (int r = 0; r < a.nrow(); ++r) { \
+      for (int c = 0; c < a.ncol(); ++c) { \
+        DOUBLES_EQUAL(a(r, c), b(r, c), tolerance); \
+      } \
+    } \
+  } \
+} while(false);
 
 TEST(RobustHomographyEstimation, ORSA) {
   //------------------------//
@@ -75,7 +89,7 @@ TEST(RobustHomographyEstimation, ORSA) {
     kernel.orsa(vec_inliers, 100, NULL, &homographyMat, true);
     
     // Assert we found 15 inliers
-    EXPECT_EQ(15, vec_inliers.size());
+    CHECK(vec_inliers.size() == 15);
 
     //-- Re-estimate Homography on all inliers.
     kernel.ComputeModel(vec_inliers, &homographyMat);
