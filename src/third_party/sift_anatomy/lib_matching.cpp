@@ -100,11 +100,11 @@ void matching(struct sift_keypoints *k1,
     int n1 = k1->size;
     int n2 = k2->size;
 
-    float* dist  = (float*)xmalloc(n1*n2*sizeof(float));
-    float* distA = (float*)xmalloc(n1*sizeof(float));
-    float* distB = (float*)xmalloc(n1*sizeof(float));
-    int* indexA  = (int*)xmalloc(n1*sizeof(int));
-    int* indexB  = (int*)xmalloc(n1*sizeof(int));
+    float* dist  = xmalloc<float>(n1*n2);
+    float* distA = xmalloc<float>(n1);
+    float* distB = xmalloc<float>(n1);
+    int* indexA  = xmalloc<int>(n1);
+    int* indexB  = xmalloc<int>(n1);
 
     compute_keypoints_distance(dist, k1, k2);
     find_the_two_nearest_keys(dist, n1, n2, indexA, indexB, distA, distB);

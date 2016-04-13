@@ -63,7 +63,7 @@ The SIFT method is patented
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdbool.h>
+/*#include <stdbool.h>*/
 #include <assert.h>
 #include <math.h>
 #include <float.h>
@@ -131,7 +131,7 @@ void scalespace_compute(struct sift_scalespace* ss,
             assert(sigma_min>=sigma_in);
             sigma_extra = sqrt(sigma_min*sigma_min - sigma_in*sigma_in)/delta_min;
             if(delta_min < 1){
-                float* imtmp = xmalloc(w* h * sizeof(float));
+                float* imtmp = xmalloc<float>(w*h);
                 sift_oversample_bilin(image,im_w,im_h,imtmp,w,h,delta_min);
                 sift_add_gaussian_blur(imtmp,octave->imStack,w,h,sigma_extra);
                 xfree(imtmp);
@@ -628,7 +628,7 @@ static void keypoints_attribute_orientations(const struct sift_scalespace *sx,
         sift_accumulate_orientation_histogram(x, y, sigma, dx, dy, w, h, n_bins, lambda_ori, key->orihist);
 
         /** Extract principal orientation */
-        float* principal_orientations = xmalloc(n_bins*sizeof(float));
+        float* principal_orientations = xmalloc<float>(n_bins);
         int n_prOri;
         n_prOri = sift_extract_principal_orientations(key->orihist, n_bins, t, principal_orientations); /*t = 0.8 threhsold for secondary orientation */
 
@@ -770,7 +770,7 @@ static void keypoints_attribute_descriptors(struct sift_scalespace *sx,
 
 struct sift_parameters* sift_assign_default_parameters()
 {
-    struct sift_parameters* p = xmalloc(sizeof(*p));
+    struct sift_parameters* p = xmalloc<struct sift_parameters>(1);
     p->n_oct = 8;
     p->n_spo = 3;
     p->sigma_min = 0.8;
@@ -797,7 +797,7 @@ static int number_of_octaves(int w, int h, const struct sift_parameters* p)
     // The size (min of width and height) of images in the first octave.
     int h0 = MIN(w,h)/p->delta_min;
     // The number of octaves.
-    int n_oct = MIN(p->n_oct, (int)(log(h0/hmin)/M_LN2) + 1);
+    int n_oct = MIN(p->n_oct, (int)(log((double)(h0/hmin))/M_LN2) + 1);
     return n_oct;
 }
 

@@ -108,7 +108,7 @@ void printImage(const float *imageIn, int w, int h, const char *name)
 
 void printImage_LinearConversion(const float *imageIn, int w, int h, const char *name)
 {
-    float *imTemp = xmalloc(w*h*sizeof(float));
+    float *imTemp = xmalloc<float>(w*h);
     linear_conversion(imageIn, imTemp, w * h); // imTemp values are in [0,1]
     printImage(imTemp, w, h, name);
     xfree(imTemp);
@@ -353,8 +353,8 @@ void print_sift_scalespace_rgb(const struct sift_scalespace* scalespace, const c
     char name[FILENAME_MAX];
     int wALL = scalespace->octaves[0]->w;
     int hALL = scalespace->octaves[0]->h;
-    float* imtemp = xmalloc(wALL*hALL*sizeof(float));
-    float* imrgb = xmalloc(3*wALL*hALL*sizeof(float));
+    float* imtemp = xmalloc<float>(wALL*hALL);
+    float* imrgb = xmalloc<float>(3*wALL*hALL);
 
     int nOct = scalespace->nOct;
     for(int o = 0; o < nOct; o++){
@@ -380,7 +380,7 @@ void print_sift_scalespace_gray_nearestneighbor(const struct sift_scalespace* sc
     char name[FILENAME_MAX];
     int wALL = scalespace->octaves[0]->w;
     int hALL = scalespace->octaves[0]->h;
-    float* imtemp = xmalloc(wALL*hALL*sizeof(float));
+    float* imtemp = xmalloc<float>(wALL*hALL);
 
     int nOct = scalespace->nOct;
     for(int o = 0; o < nOct; o++){
@@ -412,7 +412,7 @@ void print_sift_scalespace_rgb_nointerp(const struct sift_scalespace* scalespace
 
         for(int s = 1; s < nSca - 1; s++){
             const float* image = &octave->imStack[s*w*h];
-            float* imrgb = xmalloc(3*w*h*sizeof(float));
+            float* imrgb = xmalloc<float>(3*w*h);
             for(int i = 0; i < 3*w*h; i++){
                 imrgb[i] = 0.0;
             }

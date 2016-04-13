@@ -91,15 +91,15 @@ this program. If not, see
 static struct octa *malloc_octa(float delta, int w, int h, int nSca, const float* sigmas){
 
     /* Memory allocation */
-    struct octa* octave = xmalloc(sizeof(struct octa));   /* pointer to a (structure octave) */
+    struct octa* octave = xmalloc<struct octa>(1);   /* pointer to a (structure octave) */
 
     /* Modifying structure members */
     octave->delta  = delta;
     octave->w  = w;
     octave->h = h;
     octave->nSca   = nSca;
-    octave->sigmas  = xmalloc(nSca*sizeof(float));                /* pointer to the array of level of simulated blurs */
-    octave->imStack = xmalloc(nSca*w*h*sizeof(float));   /* pointer to the array of pixels  */
+    octave->sigmas  = xmalloc<float>(nSca);                /* pointer to the array of level of simulated blurs */
+    octave->imStack = xmalloc<float>(nSca*w*h);   /* pointer to the array of pixels  */
     for(int i=0;i<nSca;i++){
         octave->sigmas[i] = sigmas[i];
     }
@@ -126,7 +126,7 @@ struct sift_scalespace* sift_malloc_scalespace(int nOct,
                                                const int* nScas,
                                                float** sigmas)
 {
-    struct sift_scalespace* scalespace = xmalloc(sizeof(struct sift_scalespace));
+    struct sift_scalespace* scalespace = xmalloc<struct sift_scalespace>(1);
     scalespace->nOct = nOct;
     for(int o=0;o<nOct;o++){
         scalespace->octaves[o] = malloc_octa(deltas[o], ws[o], hs[o], nScas[o], sigmas[o]);
@@ -167,11 +167,11 @@ struct sift_scalespace* sift_malloc_scalespace_from_model(struct sift_scalespace
 
     int nOct = model_sift_scalespace->nOct;
 
-    int* nScas = xmalloc(nOct*sizeof(int));
-    int* ws = xmalloc(nOct*sizeof(int));
-    int* hs = xmalloc(nOct*sizeof(int));
-    float* deltas  = xmalloc(nOct*sizeof(float));
-    float** sigmas = xmalloc(nOct*sizeof(float*));
+    int* nScas = xmalloc<int>(nOct);
+    int* ws = xmalloc<int>(nOct);
+    int* hs = xmalloc<int>(nOct);
+    float* deltas  = xmalloc<float>(nOct);
+    float** sigmas = xmalloc<float*>(nOct);
 
     for(int o=0;o<nOct;o++){
         nScas[o]   = model_sift_scalespace->octaves[o]->nSca;
@@ -179,7 +179,7 @@ struct sift_scalespace* sift_malloc_scalespace_from_model(struct sift_scalespace
         hs[o] = model_sift_scalespace->octaves[o]->h;
         deltas[o]  = model_sift_scalespace->octaves[o]->delta;
 
-        sigmas[o]  = xmalloc(nScas[o]*sizeof(float));
+        sigmas[o]  = xmalloc<float>(nScas[o]);
         for(int i=0;i<nScas[o];i++)
             sigmas[o][i] = model_sift_scalespace->octaves[o]->sigmas[i];
     }
@@ -219,11 +219,11 @@ struct sift_scalespace* sift_malloc_scalespace_lowe(int nOct,                 /*
                                                     float delta_min,             /* minimal inter distance sample     */
                                                     float sigma_min)            /* minimal scale in each octave (relatively to the sampling rate) */
 {
-    int* ws  = xmalloc(nOct*sizeof(int));
-    int* hs  = xmalloc(nOct*sizeof(int));
-    int* nScas      = xmalloc(nOct*sizeof(int));
-    float* deltas  = xmalloc(nOct*sizeof(float));
-    float** sigmas = xmalloc(nOct*sizeof(float*));    /* nSca+3 = nSca + 2 extra scales to search 3d extrema + 1 extra scale to compute DoG */
+    int* ws  = xmalloc<int>(nOct);
+    int* hs  = xmalloc<int>(nOct);
+    int* nScas     = xmalloc<int>(nOct);
+    float* deltas  = xmalloc<float>(nOct);
+    float** sigmas = xmalloc<float*>(nOct);    /* nSca+3 = nSca + 2 extra scales to search 3d extrema + 1 extra scale to compute DoG */
     assert(delta_min <=1);
     deltas[0] = delta_min;
     hs[0] = (int)(im_h/delta_min);
@@ -235,9 +235,9 @@ struct sift_scalespace* sift_malloc_scalespace_lowe(int nOct,                 /*
     }
     for(int o=0;o<nOct;o++){
         nScas[o] = nSca+3;  /* 3 extra images in the stack, 1 for dog computation and 2 for 3d discrete extrema definition*/
-        sigmas[o] = xmalloc(nScas[o]*sizeof(float));
+        sigmas[o] = xmalloc<float>(nScas[o]);
         for(int s=0;s<nSca+3;s++){ /* nSca images + 3 auxiliary images*/
-            sigmas[o][s] = deltas[o]/deltas[0]*sigma_min*pow(2.0,(float)s/(float)nSca);
+            sigmas[o][s] = deltas[o]/deltas[0]*sigma_min*pow(2.0f,(float)s/(float)nSca);
         }
     }
     struct sift_scalespace* scalespace = sift_malloc_scalespace(nOct, deltas, ws, hs, nScas, sigmas);   
@@ -286,8 +286,8 @@ struct sift_scalespace* sift_malloc_scalespace_dog_from_scalespace(struct sift_s
         h = scalespace->octaves[o]->h;
 
         dog->octaves[o]->nSca = nSca;
-        dog->octaves[o]->sigmas  = xmalloc(nSca*sizeof(float));
-        dog->octaves[o]->imStack = xmalloc(nSca*w*h*sizeof(float));
+        dog->octaves[o]->sigmas  = xmalloc<float>(nSca);
+        dog->octaves[o]->imStack = xmalloc<float>(nSca*w*h);
 
         for(int i=0;i<nSca;i++){
             dog->octaves[o]->sigmas[i] = scalespace->octaves[o]->sigmas[i];

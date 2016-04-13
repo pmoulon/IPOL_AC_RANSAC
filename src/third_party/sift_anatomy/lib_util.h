@@ -17,6 +17,33 @@
 #endif
 
 // Allocate memory or abord on failure
+template <typename type>
+type* xmalloc(size_t size)
+{
+    if (size == 0)
+        fprintf(stderr,"xmalloc: zero size");
+    void *p = malloc(size*sizeof(type));
+    if (!p)
+    {
+        double sm = size / (0x100000 * 1.0);
+        fprintf(stderr,"xmalloc: out of memory when requesting "
+                "%zu bytes (%gMB)",//:\"%s\"",
+                size, sm);//, strerror(errno));
+    }
+    return (type*)p;
+}
+
+// Reallocate memory of abort on failure
+template <typename type>
+type* xrealloc(type* p, size_t size)
+{
+    type *r = (type*)realloc(p, size*sizeof(type));
+    if (!r) fprintf(stderr,"realloc failed");
+    return r;
+}
+
+
+
 void* xmalloc(size_t size);
 
 // Reallocate memory of abort on failure

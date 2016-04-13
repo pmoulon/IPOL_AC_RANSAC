@@ -4,30 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-// Allocate memory or abord on failure
-void* xmalloc(size_t size)
-{
-    if (size == 0)
-        fprintf(stderr,"xmalloc: zero size");
-    void *p = malloc(size);
-    if (!p)
-    {
-        double sm = size / (0x100000 * 1.0);
-        fprintf(stderr,"xmalloc: out of memory when requesting "
-                "%zu bytes (%gMB)",//:\"%s\"",
-                size, sm);//, strerror(errno));
-    }
-    return p;
-}
-
-// Reallocate memory of abort on failure
-void* xrealloc(void* p, size_t size)
-{
-    void *r = realloc(p, size);
-    if (!r) fprintf(stderr,"realloc failed");
-    return r;
-}
-
 // Free memory allocated by xmalloc or xrealloc.
 void xfree(void* p)
 {

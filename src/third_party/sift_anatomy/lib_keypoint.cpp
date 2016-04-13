@@ -74,12 +74,12 @@ this program. If not, see
 
 struct keypoint* sift_malloc_keypoint(int n_ori, int n_hist, int n_bins)
 {
-    struct keypoint* key =  xmalloc(sizeof(struct keypoint));
+    struct keypoint* key = xmalloc<struct keypoint>(1);
     key->n_ori  = n_ori;
     key->n_hist = n_hist;
     key->n_bins = n_bins;
-    key->descr = xmalloc(n_ori*n_hist*n_hist*sizeof(float));
-    key->orihist = xmalloc(n_bins*sizeof(float));
+    key->descr = xmalloc<float>(n_ori*n_hist*n_hist);
+    key->orihist = xmalloc<float>(n_bins);
     // set default value
     key->x = 0.;
     key->y = 0.;
@@ -138,8 +138,8 @@ struct keypoint* sift_malloc_keypoint_from_model_and_copy(const struct keypoint*
 
 struct sift_keypoints* sift_malloc_keypoints()
 {
-    struct sift_keypoints * keys = xmalloc(1*sizeof(struct sift_keypoints));
-    keys->list = xmalloc(100*sizeof(struct keypoint*));
+    struct sift_keypoints * keys = xmalloc<struct sift_keypoints>(1);
+    keys->list = xmalloc<keypoint*>(100);
     keys->capacity = 100;
     keys->size = 0;
     return keys;
@@ -148,7 +148,7 @@ struct sift_keypoints* sift_malloc_keypoints()
 
 static void realloc_sift_keypoints(struct sift_keypoints* keys)
 {
-    keys->list = (struct keypoint**)xrealloc(keys->list, 2*keys->capacity*sizeof(struct keypoint*));
+    keys->list = xrealloc(keys->list, 2*keys->capacity);
     keys->capacity = 2*keys->capacity;
 }
 
@@ -262,7 +262,7 @@ void sift_read_keypoints(struct sift_keypoints* keys,
                          int flag)
 {
     size_t buffer_size = 1024 * 1024;  // 1MB buffer for long lines.
-    char* buffer = xmalloc(buffer_size);
+    char* buffer = xmalloc<char>(buffer_size);
     FILE* stream = fopen(name,"r");
     if ( !stream)
         fatal_error("File \"%s\" not found.", name);
