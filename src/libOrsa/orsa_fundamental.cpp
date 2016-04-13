@@ -26,8 +26,6 @@
 #include <iostream>
 #include <utility>
 
-#include "libOrsa/match.hpp"
-
 using namespace libNumerics;
 
 namespace orsa {

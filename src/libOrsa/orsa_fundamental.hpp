@@ -25,8 +25,7 @@
 
 #include <vector>
 #include "libNumerics/matrix.h"
-
-class Match;
+#include "match.hpp"
 
 namespace orsa {
 /// ORSA fundamental matrix estimation.
