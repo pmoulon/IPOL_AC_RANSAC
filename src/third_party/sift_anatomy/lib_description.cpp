@@ -406,7 +406,7 @@ void sift_threshold_and_quantize_feature_vector(float* descr, int n, float thres
 static void smooth_circular_histogram(int niter, float* hist, int nbins)
 {
     int i,i_prev,i_next;
-    float tmp[nbins];
+    float* tmp = xmalloc<float>(nbins);
     /// Initialization
     for(i = 0; i < nbins; i++)
         tmp[i] = hist[i];
@@ -420,4 +420,5 @@ static void smooth_circular_histogram(int niter, float* hist, int nbins)
             hist[i] = (tmp[i_prev]+tmp[i]+tmp[i_next])/3.;
         }
     }
+	free(tmp);
 }

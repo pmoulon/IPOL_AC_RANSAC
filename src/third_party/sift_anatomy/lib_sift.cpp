@@ -94,7 +94,7 @@ static struct sift_keypoints* sift_translate_standard_into_anatomy(const struct 
         // to alpha = nspo * log( k[i].scale / sigma_min) /M_LN2
         // with the constraint s=1,2,..,nspo.
         int o,s;
-        int a = (int)(round( n_spo * log( k[i].scale / sigma_min) /M_LN2  ));
+        int a = (int)(floor(0.5+ n_spo * log( k[i].scale / sigma_min) /M_LN2  ));
         o = (a-1)/n_spo;
         if (o > -1){
             s = (a-1)%n_spo + 1;
@@ -117,7 +117,7 @@ static struct sift_keypoints* sift_translate_standard_into_anatomy(const struct 
 void sift_translate_anatomy_into_standard(const struct sift_keypoints *keys, struct sift_keypoint_std* k, int *n)
 {
     *n = keys->size;
-    k = (struct sift_keypoint_std*)xrealloc(k, (*n)*sizeof(*k));
+    k = xrealloc(k, (*n));
     for(int i = 0; i < *n; i++){
         k[i].x = keys->list[i]->x;
         k[i].y = keys->list[i]->y;
@@ -145,19 +145,19 @@ struct sift_keypoint_std* sift_compute_features(const float* x, int w, int h, in
 
     /** Memory dynamic allocation */
     // WARNING 6 lists of keypoints containing intermediary states of the algorithm
-    struct sift_keypoints **kk = xmalloc(6*sizeof(struct sift_keypoints*));
+    struct sift_keypoints **kk = xmalloc<struct sift_keypoints*>(6);
     for(int i = 0; i < 6; i++){
         kk[i] = sift_malloc_keypoints();
     }
     // WARNING 4 scalespace structures
-    struct sift_scalespace **ss = xmalloc(4*sizeof(struct sift_scalespace*));
+    struct sift_scalespace **ss = xmalloc<struct sift_scalespace*>(4);
 
     /** Algorithm */
     struct sift_keypoints* keys = sift_anatomy(x, w, h, p, ss, kk);
 
     /* Copy to a list of keypoints */
     *n = keys->size;
-    struct sift_keypoint_std* k = xmalloc((*n)*sizeof(*k));
+    struct sift_keypoint_std* k = xmalloc<struct sift_keypoint_std>(*n);
     for(int i = 0; i < keys->size; i++){
         k[i].x = keys->list[i]->x;
         k[i].y = keys->list[i]->y;
@@ -197,19 +197,19 @@ struct sift_keypoint_std* sift_compute_points(const float* x, int w, int h, int 
 
     /** Memory dynamic allocation */
     // WARNING 5 lists of keypoints containing intermediary states of the algorithm
-    struct sift_keypoints **kk = xmalloc(5*sizeof(struct sift_keypoints*));
+    struct sift_keypoints **kk = xmalloc<struct sift_keypoints*>(5);
     for(int i = 0; i < 5; i++){
         kk[i] = sift_malloc_keypoints();
     }
     // WARNING 4 scalespace structure containing the DoG and Gaussian scalespace and the gradient
-    struct sift_scalespace **ss = xmalloc(2*sizeof(struct sift_scalespace*));
+    struct sift_scalespace **ss = xmalloc<struct sift_scalespace*>(2);
 
     /** Algorithm */
     struct sift_keypoints* keys = sift_anatomy_without_description(x, w, h, p, ss, kk);
 
     /* Copy to a list of keypoints */
     *n = keys->size;
-    struct sift_keypoint_std* k = xmalloc((*n)*sizeof(*k));
+    struct sift_keypoint_std* k = xmalloc<struct sift_keypoint_std>(*n);
     for(int i = 0; i < keys->size; i++){
         k[i].x = keys->list[i]->x;
         k[i].y = keys->list[i]->y;
@@ -319,7 +319,7 @@ struct sift_keypoint_std * sift_read_from_file(const char *filename, int *n)
 
     // translating into a flat list
     *n = keys->size;
-    struct sift_keypoint_std* k = xmalloc((*n)*sizeof(*k));
+    struct sift_keypoint_std* k = xmalloc<struct sift_keypoint_std>(*n);
     for(int i = 0; i < keys->size; i++){
         k[i].x = keys->list[i]->x;
         k[i].y = keys->list[i]->y;
@@ -351,7 +351,7 @@ struct sift_keypoint_std *sift_read_keyslocation_from_file(char *filename, int *
 
     // translate the sift_keypoints structure into a flat list
     *n = keys->size;
-    struct sift_keypoint_std* k = xmalloc((*n)*sizeof(struct sift_keypoint_std));
+    struct sift_keypoint_std* k = xmalloc<struct sift_keypoint_std>(*n);
     for(int i = 0; i < keys->size; i++){
         k[i].x = keys->list[i]->x;
         k[i].y = keys->list[i]->y;

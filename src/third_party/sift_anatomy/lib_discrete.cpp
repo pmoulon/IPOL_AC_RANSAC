@@ -145,7 +145,7 @@ void sift_compute_gradient(const float* im, float* im_x, float* im_y, int w, int
 static float* malloc_gaussian_symm_kernel(float sigma, int rad)
 {
     assert(sigma>=0);
-    float* gker = xmalloc((rad+1)*sizeof(float));
+    float* gker = xmalloc<float>(rad+1);
     gker[0] = 1.;
     if(sigma>0){
         float sum = gker[0];
@@ -279,7 +279,7 @@ static void convolve_symm(const float* in, float* out, int w, int h,
                           const float* xker, int r_xker,
                           const float* yker, int r_yker)
 {
-    float* im_tmp = xmalloc(w*h*sizeof(float));
+    float* im_tmp = xmalloc<float>(w*h);
     /* convolution along x coordinates */
     for(int i=0;i<h;i++){
         for(int j=0;j<w;j++){

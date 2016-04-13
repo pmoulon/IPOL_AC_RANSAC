@@ -23,10 +23,8 @@
 #ifndef SIFT_MATCH_H
 #define SIFT_MATCH_H
 
-extern "C" {
 #include "third_party/sift_anatomy/lib_sift_anatomy.h"
 #include "third_party/sift_anatomy/lib_matching.h"
-}
 #include "libOrsa/match.hpp"
 
 #include <istream>
