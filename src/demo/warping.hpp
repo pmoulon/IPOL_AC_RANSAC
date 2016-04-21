@@ -23,45 +23,14 @@
 #ifndef WARPING_H
 #define WARPING_H
 
-#include <limits>
 #include "extras/libNumerics/numerics.h"
 #include "libImage/sample.hpp"
-#include "demo/Rect.hpp"
+#include "Rect.hpp"
 
-/// Apply homography transform.
-/// Indicate if \a H is orientation preserving around the point.
-bool TransformH(const libNumerics::matrix<double> &H, double &x, double &y)
-{
-  libNumerics::vector<double> X(3);
-  X(0)=x; X(1)=y; X(2)=1.0;
-  X = H*X;
-  bool positive = (X(2)*H(2,2)>0);
-  X /= X(2);
-  x = X(0); y = X(1);
-  return positive;
-}
+bool TransformH(const libNumerics::matrix<double> &H, double &x, double &y);
 
-// Compute the common area of warped by homography image1 and image2.
 bool IntersectionBox(int w1, int h1, int w2, int h2,
-                     const libNumerics::matrix<double>& H, Rect &inter)
-{
-  int xCoord[4] = {0, w1-1, w1-1,    0};
-  int yCoord[4] = {0,    0, h1-1, h1-1};
-
-  Rect rect1(numeric_limits<int>::max(),
-             numeric_limits<int>::max(),
-             numeric_limits<int>::min(),
-             numeric_limits<int>::min());
-  for(int i=0; i<4; ++i)
-  {
-    double xT=xCoord[i], yT=yCoord[i];
-    TransformH(H, xT, yT);
-    rect1.growTo(xT,yT);
-  }
-
-  Rect rect2(0,0,w2-1,h2-1);
-  return rect2.intersect(rect1, inter);
-}
+                     const libNumerics::matrix<double>& H, Rect &inter);
 
 /// Warp an image given a homography
 template <class Image>

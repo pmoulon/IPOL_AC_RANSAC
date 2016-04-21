@@ -22,6 +22,7 @@
 #define LIBS_IMAGE_SAMPLE_H_
 
 #include "libImage/image.hpp"
+#include "libImage/pixelTypes.hpp"
 #include <cmath>
 
 namespace libs {

@@ -3,7 +3,7 @@
  * @brief Homographic image registration
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2012 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2016 Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,11 +25,8 @@
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <cmath>
 
 #include "libImage/image_io.hpp"
-#include "libImage/image_drawing.hpp"
 #include "libImage/image_crop.hpp"
 
 #include "libOrsa/homography_model.hpp"
@@ -37,9 +34,10 @@
 #include "extras/libNumerics/numerics.h"
 #include "extras/sift/library.h"
 
-#include "demo/siftMatch.hpp"
-#include "demo/warping.hpp"
-#include "demo/cmdLine.h"
+#include "cmdLine.h"
+#include "siftMatch.hpp"
+#include "warping.hpp"
+#include "homography_graphical_output.hpp"
 
 /// Number of random samples in ORSA
 static const int ITER_ORSA=10000;
@@ -101,84 +99,22 @@ bool ORSA(const std::vector<Match>& vec_matchings, int w1,int h1, int w2,int h2,
   return true;
 }
 
-/// Output inlier and oulier matches in image files.
-void display_match(const std::vector<Match>& vec_matchings,
-                   std::vector<int>& vec_inliers,
-                   const libNumerics::matrix<double>* H,
-                   const libNumerics::matrix<double>& H1,
-                   const libNumerics::matrix<double>& H2,
-                   Image<RGBColor>& in, Image<RGBColor>& out)
-{
-  std::sort(vec_inliers.begin(), vec_inliers.end());
-
-  // For outliers, show vector (yellow) from prediction to observation
-  const RGBColor col=YELLOW;
-  std::vector<int>::const_iterator it = vec_inliers.begin();
-  matchingslist::const_iterator m = vec_matchings.begin();
-  if(H) // Otherwise, no prediction
-    for(int i=0; m != vec_matchings.end(); ++m, ++i) {
-      if(it != vec_inliers.end() && i==*it)
-        ++it;
-      else { //Outlier
-          double x1=m->x1, y1=m->y1, x2=m->x2, y2=m->y2;
-          TransformH(H2 * *H, x1, y1);
-          TransformH(H2, x2, y2);
-          libs::DrawLine((int)x1,(int)y1,(int)x2,(int)y2, col,&out);
-      }
-    }
-
-  // Show link for inliers (green) and outliers (red)
-  it = vec_inliers.begin();
-  m = vec_matchings.begin();
-  for(int i=0; m != vec_matchings.end(); ++m, ++i)
-  {
-    Image<RGBColor>* im=&out;
-    RGBColor col=RED;
-    if(it != vec_inliers.end() && i==*it) {
-      ++it;
-      im=&in;
-      col=GREEN;
-    }
-    double x1=m->x1, y1=m->y1, x2=m->x2, y2=m->y2;
-    TransformH(H1, x1, y1);
-    TransformH(H2, x2, y2);
-    libs::DrawLine((int)x1,(int)y1,(int)x2, (int)y2, col, im);
-  }
-}
-
-/// Return 3x3 translation matrix
-libNumerics::matrix<double> translation(double dx, double dy) {
-    libNumerics::matrix<double> T = libNumerics::matrix<double>::eye(3);
-    T(0,2) = dx;
-    T(1,2) = dy;
-    return T;
-}
-
-/// Return 3x3 zoom-translation matrix
-libNumerics::matrix<double> zoomtrans(double z, double dx, double dy) {
-    libNumerics::matrix<double> T = libNumerics::matrix<double>::eye(3);
-    T(0,0)=T(1,1) = z;
-    T(0,2) = dx;
-    T(1,2) = dy;
-    return T;
-}
-
 int main(int argc, char **argv)
 {
-    CmdLine cmd;
-    Geometry region;
-    double precision=0;
-    cmd.add( make_option('c',region,"cut") );
-    cmd.add( make_option('p',precision, "prec") );
-    cmd.add( make_switch('r', "read") );
-    float fSiftRatio=0.6f;
-    cmd.add( make_option('s',fSiftRatio, "sift") );
-    try {
-        cmd.process(argc, argv);
-    } catch(const std::string& s) {
-        std::cerr << s << std::endl;
-        return 1;
-    }
+  CmdLine cmd;
+  Geometry region;
+  double precision=0;
+  cmd.add( make_option('c',region,"cut") );
+  cmd.add( make_option('p',precision, "prec") );
+  cmd.add( make_switch('r', "read") );
+  float fSiftRatio=0.6f;
+  cmd.add( make_option('s',fSiftRatio, "sift") );
+  try {
+    cmd.process(argc, argv);
+  } catch(const std::string& s) {
+    std::cerr << s << std::endl;
+    return 1;
+  }
   if(argc!=5 && argc!=7 && argc!=8 && argc!=10) {
     std::cerr << "Usage: " << argv[0] << ' '
               << "[-c|--cut geom] "
@@ -274,21 +210,11 @@ int main(int argc, char **argv)
 
   // Sift de-duplicated output display
   if(argc>6)
-  {
-    int w = std::max(w1,w2);
-    float z = w/(float)(w1+w2); //Set width as max of two images
-    Image<unsigned char> concat(w, int(z*std::max(h1,h2)), 255);
-    libNumerics::matrix<double> T1=zoomtrans(z, 0,   (concat.Height()-h1*z)/2);
-    libNumerics::matrix<double> T2=zoomtrans(z, w1*z,(concat.Height()-h2*z)/2);
-    Warp(image1Gray, T1, image2Gray, T2, concat);
-    Image<RGBColor> in;
-    libs::convertImage(concat, &in);
-    libs::DrawLine(int(w1*z),0, int(w1*z),int(concat.Height()), BLUE, &in);
-    Image<RGBColor> out(in);
-    display_match(vec_matchings, vec_inliers, ok? &H:0, T1, T2, in, out);
-    libs::WriteImage(argv[5], in);
-    libs::WriteImage(argv[6], out);
-  }
+    homography_matches_output(image1Gray, image2Gray,
+                              vec_matchings, vec_inliers,
+                              ok? &H:0,
+                              argv[5], argv[6]);
+
   if(! ok)
   {
     std::cerr << "Failed to estimate a model" << std::endl;
@@ -302,37 +228,13 @@ int main(int argc, char **argv)
 
     Rect intersection;
     if(IntersectionBox(w1, h1, w2, h2, H, intersection) &&
-      intersection.Width() > 0 && intersection.Height() > 0)
+       intersection.Width() > 0 && intersection.Height() > 0)
     {
-      int xc=(intersection.left+intersection.right)/2;
-      int yc=(intersection.top+intersection.bottom)/2;
-      size_t wM = std::max(image1.Width(), image2.Width());
-      size_t hM = std::max(image1.Height(), image2.Height());
-      int xo=static_cast<int>(wM/2);
-      int yo=static_cast<int>(hM/2);
-      libNumerics::matrix<double> T = translation(xo-xc, yo-yc);
-
-      Image<RGBColor> imageMosaic(wM, hM);
-      imageMosaic.fill(WHITE);
-      Warp(image1, T*H, image2, T, imageMosaic);
-      libs::WriteImage(argv[7], imageMosaic);
-
-      if (argc>9) // Registered images
-      {
-        Image<RGBColor> WarpingA(wM, hM, WHITE);
-        Image<RGBColor> WarpingB(wM, hM, WHITE);
-
-        cout << "-- Render Mosaic - Image A -- " << endl;
-        Warp(image1, T*H, WarpingA);
-
-        cout << "-- Render Mosaic - Image B -- " << endl;
-        H = libNumerics::matrix<double>::eye(3);
-        Warp(image2, T, WarpingB);
-
-        libs::WriteImage(argv[8], WarpingA);
-        libs::WriteImage(argv[9], WarpingB);
-      }
+      const char *fileReg1=0, *fileReg2=0;
+      if(argc>9) { fileReg1=argv[8]; fileReg2=argv[9]; }
+      homography_registration_output(image1, image2, H, intersection,
+                                     argv[7], fileReg1, fileReg2);
     }
-  } 
+  }
   return 0;
 }
