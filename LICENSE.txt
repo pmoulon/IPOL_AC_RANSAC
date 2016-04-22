@@ -8,21 +8,17 @@ soundness and completeness of the algorithm descriptions.
 
 These source codes implement the SIFT algorithms possibly linked to the patent 
 [1]. Compiling or running this code may violate patents in certain countries.
-For this reason, the use of the source files "src/extras/sift/*"
+For this reason, the use of the source files "src/third_party_sift_anatomy/*"
 may be restricted in certain countries to non profit research and non profit 
 educational purposes. In certain countries, redistribution or commercial 
 use of these source files may require the consent of the patent owner. 
 
 ->Licensing per directory
 
-	src/demo               <- LGPLv3 (license_LGPL.txt)
-	src/libOrsa            <- LGPLv3
-	src/extras/libNumerics <- LGPLv3
-	src/extras/libLWImage  <- Simplified BSD license (license_BSD.txt)
-	src/extras/libMatch    <- Simplified BSD license
-	src/libOrsa/numeric    <- Simplified BSD license
-	src/testing            <- Simplified BSD license
-	src/extras/sift        <- SUBJECT TO PATENT [1]
+	src/demo                <- LGPLv3 (license_LGPL.txt)
+	src/libOrsa             <- LGPLv3
+	src/libOrsa/libNumerics <- LGPLv3
+	src/testing             <- Simplified BSD license
 
 	src/third_party <- libraries subject to their own licence.
 	License and code repository are explained in README.ipol files.
