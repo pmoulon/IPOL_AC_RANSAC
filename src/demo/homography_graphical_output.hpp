@@ -33,7 +33,7 @@ class Rect;
 void homography_matches_output(const Image<unsigned char>& image1,
                                const Image<unsigned char>& image2,
                                const std::vector<Match>& vec_all,
-                               std::vector<int> vec_in,
+                               const std::vector<int>& vec_in,
                                const libNumerics::matrix<double>* H,
                                const char* fileIn, const char* fileOut);
 
