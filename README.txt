@@ -1,5 +1,5 @@
 Name: OrsaHomography
-Version: 20130522
+Version: 20160422
 
 Long name:
 Automatic homographic registration of a pair of images, with a contrario elimination of outliers
