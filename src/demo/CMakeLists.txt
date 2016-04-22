@@ -8,7 +8,7 @@ endif (OPENMP_FOUND)
 # Executable demo to estimate a homography matrix from SIFT matches and
 # display the corresponding mosaic.
 ADD_EXECUTABLE(demo_orsa_homography
-               orsa_homography.cpp
+               demo_orsa_homography.cpp
                homography_graphical_output.cpp homography_graphical_output.hpp
                Rect.cpp Rect.hpp
                siftMatch.hpp

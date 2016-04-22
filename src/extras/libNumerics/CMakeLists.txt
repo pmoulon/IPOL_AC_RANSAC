@@ -2,6 +2,7 @@ PROJECT(libNumerics)
 
 SET(SRC 
         ccmath_svd.cpp
+        homography.h
         matrix.cpp matrix.h
         numerics.cpp numerics.h
         vector.cpp)

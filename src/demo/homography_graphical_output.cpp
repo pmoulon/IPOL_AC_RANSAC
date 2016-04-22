@@ -94,19 +94,23 @@ void homography_matches_output(const Image<unsigned char>& image1,
                                std::vector<int> vec_in,
                                const libNumerics::matrix<double>* H,
                                const char* fileIn, const char* fileOut) {
+    cout << "-- Render Mosaic -- " << endl;
     const int w1=image1.Width(), h1=image1.Height();
     const int w2=image2.Width(), h2=image2.Height();
-    int w = std::max(w1,w2);
-    float z = w/(float)(w1+w2); //Set width as max of two images
+    int w = std::max(w1,w2);    // Set width as max of two images
+    float z = w/(float)(w1+w2); // Keep aspect ratio
     Image<unsigned char> concat(w, int(z*std::max(h1,h2)), 255);
+
     libNumerics::matrix<double> T1=zoomtrans(z, 0,   (concat.Height()-h1*z)/2);
     libNumerics::matrix<double> T2=zoomtrans(z, w1*z,(concat.Height()-h2*z)/2);
     Warp(image1, T1, image2, T2, concat);
+
     Image<RGBColor> in;
     libs::convertImage(concat, &in);
     libs::DrawLine(int(w1*z),0, int(w1*z),int(concat.Height()), BLUE, &in);
     Image<RGBColor> out(in);
     display_match(vec_all, vec_in, H, T1, T2, in, out);
+
     libs::WriteImage(fileIn,  in);
     libs::WriteImage(fileOut, out);
 }

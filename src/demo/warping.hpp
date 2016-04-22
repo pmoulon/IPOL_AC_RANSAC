@@ -23,11 +23,9 @@
 #ifndef WARPING_H
 #define WARPING_H
 
-#include "extras/libNumerics/numerics.h"
+#include "extras/libNumerics/homography.h"
 #include "libImage/sample.hpp"
 #include "Rect.hpp"
-
-bool TransformH(const libNumerics::matrix<double> &H, double &x, double &y);
 
 bool IntersectionBox(int w1, int h1, int w2, int h2,
                      const libNumerics::matrix<double>& H, Rect &inter);

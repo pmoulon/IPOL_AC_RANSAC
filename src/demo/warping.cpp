@@ -23,19 +23,6 @@
 #include "warping.hpp"
 #include <limits>
 
-/// Apply homography transform.
-/// Indicate if \a H is orientation preserving around the point.
-bool TransformH(const libNumerics::matrix<double> &H, double &x, double &y)
-{
-  libNumerics::vector<double> X(3);
-  X(0)=x; X(1)=y; X(2)=1.0;
-  X = H*X;
-  bool positive = (X(2)*H(2,2)>0);
-  X /= X(2);
-  x = X(0); y = X(1);
-  return positive;
-}
-
 /// Compute the common area of warped by homography image1 and image2.
 bool IntersectionBox(int w1, int h1, int w2, int h2,
                      const libNumerics::matrix<double>& H, Rect &inter)

@@ -30,13 +30,15 @@
 #include "libImage/image_crop.hpp"
 
 #include "libOrsa/homography_model.hpp"
+#include "libOrsa/orsa_homography.hpp"
 
-#include "extras/libNumerics/numerics.h"
+#include "extras/libNumerics/homography.h"
 #include "extras/sift/library.h"
 
 #include "cmdLine.h"
 #include "siftMatch.hpp"
 #include "warping.hpp"
+#include "Rect.hpp"
 #include "homography_graphical_output.hpp"
 
 /// Number of random samples in ORSA
@@ -144,7 +146,7 @@ int main(int argc, char **argv)
   bool bUseRegion = cmd.used('c');
   if(bUseRegion) { // Sanity check
     Geometry zone;
-    zone.x0=zone.y0=0; zone.x1=int(image1.Width()); zone.y1=int(image1.Height());
+    zone.x0=zone.y0=0; zone.x1=int(image1.Width());zone.y1=int(image1.Height());
     if(! (region.x0<region.x1 && region.y0<region.y1 &&
           zone.inside(region.x0,region.y0) &&
           zone.inside(region.x1-1,region.y1-1))) {
@@ -192,7 +194,8 @@ int main(int argc, char **argv)
   // Estimation of homography with ORSA
   libNumerics::matrix<double> H(3,3);
   std::vector<int> vec_inliers;
-  bool ok = ORSA(vec_matchings, w1, h1, w2, h2, precision, H, vec_inliers);
+  bool ok = orsa::orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+                                  H, vec_inliers);
   if(ok)
   {
     H /= H(2,2);
@@ -224,8 +227,6 @@ int main(int argc, char **argv)
   // Mosaics
   if(argc>7)
   {
-    cout << "-- Render Mosaic -- " << endl;
-
     Rect intersection;
     if(IntersectionBox(w1, h1, w2, h2, H, intersection) &&
        intersection.Width() > 0 && intersection.Height() > 0)
