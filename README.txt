@@ -2,7 +2,8 @@ Fundamental Matrix of a Stereo Pair, with A Contrario Elimination of Outliers
 Lionel Moisan lionel.moisan@parisdescartes.fr MAP5, Universite Paris Descartes
 Pierre Moulon pmoulon@gmail.com IMAGINE/LIGM, Universite Paris Est
 Pascal Monasse monasse@imagine.enpc.fr IMAGINE/LIGM, Universite Paris Est
-Version 1.0rc2 released on 2016/04/14
+Version 1.0 released on 2016/04/28
+Associated to IPOL article: http://dx.doi.org/10.5201/ipol.2016.147
 Future releases and updates:
 http://imagine.enpc.fr/~moulonp/AC_Ransac.html
 

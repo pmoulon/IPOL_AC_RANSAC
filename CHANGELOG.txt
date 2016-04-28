@@ -1,3 +1,8 @@
+1.0 (2016-04-28)
+- Upgrade third party libraries.
+- Use sift_anatomy from IPOL.
+- Make libOrsa stand-alone and easy to reuse.
+
 2013-05-22:
 - Restore default SIFT parameters.
 - Avoid exact 0 residual in the NFA computation (fix for identity transformation like Im1==Im2).
