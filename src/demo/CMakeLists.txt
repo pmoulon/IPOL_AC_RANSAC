@@ -22,3 +22,7 @@ IF(UNIX)
     SET_TARGET_PROPERTIES(put_epipolar PROPERTIES
                           COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
 ENDIF(UNIX)
+
+# Show small epipolar lines
+ADD_EXECUTABLE(show_epi show_epi.cpp fundamental_graphical_output.cpp Rect.cpp)
+TARGET_LINK_LIBRARIES(show_epi Orsa image SiftAnatomy)
