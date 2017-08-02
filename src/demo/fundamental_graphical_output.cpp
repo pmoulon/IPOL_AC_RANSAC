@@ -68,7 +68,12 @@ void display_error(const libNumerics::matrix<double>& F,
   double x1=m.x1, y1=m.y1, x2=m.x2, y2=m.y2;
   //Epipolar line on second image
   libNumerics::vector<double> epi(x1, y1, 1);
+  double qnorm = epi.qnorm();
   epi = F * epi;
+  if(epi.qnorm() < 1.0e-5f*qnorm) {
+      cerr << "Warning: not drawing line close to epipole " << m;
+      return;
+  }
   epi /= sqrt(epi(0)*epi(0) + epi(1)*epi(1));
 
   //Draw segment to projection on epipolar line
@@ -141,7 +146,12 @@ void draw_small_epi(const libNumerics::matrix<double>& F,
                     Image<RGBColor>* out)
 {
   libNumerics::vector<double> epi(m.x1, m.y1, 1);
-  epi = F*epi;
+  double qnorm = epi.qnorm();
+  epi = F * epi;
+  if(epi.qnorm() < 1.0e-11f*qnorm) {
+      cerr << "Warning: not drawing line close to epipole " << m;
+      return;
+  }
   epi /= sqrt(epi(0)*epi(0) + epi(1)*epi(1));
   double a = epi(0), b = epi(1), c = epi(2);
   double lambda = (a*m.x2+b*m.y2+c);
