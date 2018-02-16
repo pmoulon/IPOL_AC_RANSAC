@@ -48,10 +48,10 @@ bool IntersectionBox(int w1, int h1, int w2, int h2,
   int xCoord[4] = {0, w1-1, w1-1,    0};
   int yCoord[4] = {0,    0, h1-1, h1-1};
 
-  Rect rect1(numeric_limits<int>::max(),
-             numeric_limits<int>::max(),
-             numeric_limits<int>::min(),
-             numeric_limits<int>::min());
+  Rect rect1(std::numeric_limits<int>::max(),
+             std::numeric_limits<int>::max(),
+             std::numeric_limits<int>::min(),
+             std::numeric_limits<int>::min());
   for(int i=0; i<4; ++i)
   {
     double xT=xCoord[i], yT=yCoord[i];

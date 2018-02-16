@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <cstring>
-using namespace std;
 
 //-- Container for a 2D image
 //-- This class ensure that the image have a width and a height
@@ -129,13 +128,13 @@ public:
     memset(_data, val, sizeof(T) * _width * _height);
   }
 
-  friend ostream & operator<<(ostream & os, const Image<T> & im) {
+  friend std::ostream & operator<<(std::ostream & os, const Image<T> & im) {
     os << im.Width() << " " << im.Height();
     for (size_t j = 0; j < im.Height(); ++j)
     {
       for (size_t i = 0; i < im.Width(); ++i)
         os << im(j,i) << " ";
-      os << endl;
+      os << std::endl;
     }
     return os;
   }

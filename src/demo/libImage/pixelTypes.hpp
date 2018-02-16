@@ -18,7 +18,6 @@
 #define LIBS_IMAGE_PIXELTYPES_H_
 
 #include <iostream>
-using namespace std;
 
 /// RGB templated pixel type
 template <class T>
@@ -48,7 +47,7 @@ public:
   /// Return gray
   inline operator T() const { return T(0.3*r+0.59*g+0.11*b);}
 
-  friend ostream & operator<<(ostream & os, const RGBClass & col) {
+  friend std::ostream & operator<<(std::ostream & os, const RGBClass & col) {
     os << col.r << " " << col.g << " " << col.b;
     return os;
   }
