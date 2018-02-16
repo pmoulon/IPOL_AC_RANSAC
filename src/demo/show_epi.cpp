@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <numeric>
 
 #include "libImage/image_io.hpp"
 #include "libOrsa/orsa_fundamental.hpp"
@@ -29,10 +30,10 @@
 #include "siftMatch.hpp"
 #include "fundamental_graphical_output.hpp"
 
+using namespace libNumerics;
+
 // Read calibration file in USAC format
-bool read_calib(const char* sFile,
-                libNumerics::matrix<double>& K1,
-                libNumerics::matrix<double>& K2) {
+bool read_calib(const char* sFile, matrix<double>& K1, matrix<double>& K2) {
     std::ifstream file(sFile);
     if(! file)
         return false;
@@ -46,7 +47,7 @@ bool read_calib(const char* sFile,
     return !file.fail();
 }
 
-bool read_E(const char* sFile, libNumerics::matrix<double>& E) {
+bool read_E(const char* sFile, matrix<double>& E) {
     std::ifstream file(sFile);
     if(! file)
         return false;
@@ -54,6 +55,22 @@ bool read_E(const char* sFile, libNumerics::matrix<double>& E) {
          >> E(1,0) >> E(1,1) >> E(1,2)
          >> E(2,0) >> E(2,1) >> E(2,2);
     return !file.fail();
+}
+
+/// Return left epipole of matrix F. The returned vector is of norm 1.
+static libNumerics::vector<double> leftEpipole(const matrix<double>& F) {
+    libNumerics::vector<double> e(3), e2(3);
+    double norm=-1;
+    for(int i=0; i<3; i++)
+        for(int j=i+1; j<3; j++) {
+            e2 = cross(F.col(i),F.col(j));
+            double norm2=e2.qnorm();
+            if(norm < norm2) {
+                norm = norm2;
+                e = e2;
+            }
+        }
+    return e/e(2);
 }
 
 int main(int argc, char **argv)
@@ -97,23 +114,25 @@ int main(int argc, char **argv)
   }
 
   // Read calibration file
-  libNumerics::matrix<double> K1(3,3), K2(3,3);
+  matrix<double> K1(3,3), K2(3,3);
   if(! read_calib(sFileCalib, K1, K2)) {
     std::cerr << "Error reading file " << sFileCalib << std::endl;
     return 1;
   }
 
-  libNumerics::matrix<double> F(3,3);
+  matrix<double> F(3,3);
   if(! read_E(sFileE, F)) {
     std::cerr << "Error reading file " << sFileE << std::endl;
     return 1;
   }
   F = K1.t().inv() * F * K2.inv();
   std::cout << "F=" << F <<std::endl;
+  std::cout << "Epipoles: "
+            << leftEpipole(F    ).copy(0,1) << " "
+            << leftEpipole(F.t()).copy(0,1) << std::endl;
 
-  std::vector<int> vec_inliers;
-  for(size_t i=0; i<matchings.size(); i++)
-      vec_inliers.push_back( static_cast<int>(i) );
+  std::vector<int> vec_inliers(matchings.size(), 1);
+  std::partial_sum(vec_inliers.begin(), vec_inliers.end(), vec_inliers.begin());
 
   fundamental_graphical_output(image1Gray, image2Gray,
                                matchings, vec_inliers, &F,
