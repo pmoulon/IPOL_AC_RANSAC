@@ -58,8 +58,8 @@ bool read_E(const char* sFile, matrix<double>& E) {
 }
 
 /// Return left epipole of matrix F. The returned vector is of norm 1.
-static libNumerics::vector<double> leftEpipole(const matrix<double>& F) {
-    libNumerics::vector<double> e(3), e2(3);
+static vector<double> leftEpipole(const matrix<double>& F) {
+    vector<double> e(3), e2(3);
     double norm=-1;
     for(int i=0; i<3; i++)
         for(int j=i+1; j<3; j++) {
