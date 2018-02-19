@@ -132,6 +132,7 @@ int main(int argc, char **argv)
             << leftEpipole(F.t()).copy(0,1) << std::endl;
 
   std::vector<int> vec_inliers(matchings.size(), 1);
+  if(!vec_inliers.empty()) vec_inliers[0]=0;
   std::partial_sum(vec_inliers.begin(), vec_inliers.end(), vec_inliers.begin());
 
   fundamental_graphical_output(image1Gray, image2Gray,
