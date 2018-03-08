@@ -3,7 +3,7 @@
  * @brief Graphical output to show fundamental matrix estimation
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2016-2018 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -223,7 +223,7 @@ void fundamental_graphical_output(const Image<unsigned char>& image1,
   if(fileIn) { // Draw links for inliers
     Image<RGBColor> in(im);
     for(it=vec_in.begin(); it!=vec_in.end(); ++it)
-      draw_match(vec_all[*it], COL_IN_LINK, &in, T1, T2, true);
+      draw_match(vec_all.at(*it), COL_IN_LINK, &in, T1, T2, true);
     libs::WriteImage(fileIn, in);
   }
   if(fileOut) { // Draw epipolar lines and links for outliers
@@ -245,13 +245,13 @@ void fundamental_graphical_output(const Image<unsigned char>& image1,
     const double margin2 = diag(image2) *.02;
     // Draw matches with inlier/outlier color
     for(it=vec_in.begin();  it!=vec_in.end();  ++it)
-        draw_match(vec_all[*it], COL_IN,  &im, T1, T2, false);
+      draw_match(vec_all.at(*it), COL_IN,  &im, T1, T2, false);
     for(it=vec_out.begin(); it!=vec_out.end(); ++it)
-        draw_match(vec_all[*it], COL_OUT, &im, T1, T2, false);
+      draw_match(vec_all[*it]   , COL_OUT, &im, T1, T2, false);
 
     if(F) // Draw small epipolar lines for inliers
       for(it=vec_in.begin();  it!=vec_in.end();  ++it) {
-        const Match& m=vec_all[*it];
+        const Match& m=vec_all.at(*it);
         draw_epi(*F,     inv(m), T1, margin1, &im, COL_EPI);
         draw_epi(F->t(),     m,  T2, margin2, &im, COL_EPI);
       }

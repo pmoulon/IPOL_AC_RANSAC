@@ -3,7 +3,7 @@
  * @brief Graphical output to show fundamental matrix estimation
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2016-2018 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
