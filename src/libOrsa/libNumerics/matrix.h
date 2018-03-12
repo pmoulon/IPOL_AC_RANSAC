@@ -94,7 +94,7 @@ public:
     void paste(int i0, int j0, const matrix<T>& block);
     friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
     vector<T> col(int j) const; ///< Copy column.
-    matrix<T> row(int i) const; ///< Copy row.
+    vector<T> row(int i) const; ///< Copy row.
     int lastCol() const {return m_cols-1;} ///< Index of last column.
     int lastRow() const {return m_rows-1;} ///< Index of last row.
 

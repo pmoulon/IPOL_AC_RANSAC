@@ -37,7 +37,7 @@ Image<RGBColor> concat_images(const Image<unsigned char>& image1,
                               const Image<unsigned char>& image2,
                               libNumerics::matrix<double>* T1,
                               libNumerics::matrix<double>* T2,
-                              bool horizontalLayout=true);
+                              bool horizontalLayout=true, int dim=0);
 
 void draw_match(const Match& m,  RGBColor col, Image<RGBColor>* im,
                 const libNumerics::matrix<double>& T1,

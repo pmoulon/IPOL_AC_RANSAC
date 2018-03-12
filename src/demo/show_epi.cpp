@@ -27,6 +27,7 @@
 #include "libImage/image_io.hpp"
 #include "libOrsa/orsa_fundamental.hpp"
 
+#include "cmdLine.h"
 #include "siftMatch.hpp"
 #include "fundamental_graphical_output.hpp"
 
@@ -75,6 +76,19 @@ static vector<double> leftEpipole(const matrix<double>& F) {
 
 int main(int argc, char **argv)
 {
+  std::string sInliers;
+  bool link=false;
+  int dim=0;
+  CmdLine cmd;
+  cmd.add( make_option('i',sInliers, "inliers").doc("Inliers file") );
+  cmd.add( make_option('l',link, "link").doc("Link matching points") );
+  cmd.add( make_option('d',dim, "dim").doc("Horizontal dimension of output") );
+  try {
+    cmd.process(argc, argv);
+  } catch(const std::string& s) {
+    std::cerr << s << std::endl;
+    argc=1;
+  }
   if(argc != 4 && argc!=7) {
     std::cerr << "Usage: " << argv[0]
               << " [imgInA imgInB calib_matrices.txt] "
@@ -82,6 +96,7 @@ int main(int argc, char **argv)
               << "matches.txt "
               << "imgOut"
               << std::endl;
+    std::cerr << "Options: "<< std::endl << cmd;
     return 1;
   }
   const char* sImage1 = "im1.jpg";
@@ -109,7 +124,13 @@ int main(int argc, char **argv)
   if(Match::loadMatch(sFileMatch, matchings))
     std::cout << "Read " <<matchings.size()<< " matches" <<std::endl;
   else {
-    std::cerr << "Failed reading matches from " << argv[3] <<std::endl;
+    std::cerr << "Failed reading matches from " << sFileMatch <<std::endl;
+    return 1;
+  }
+
+  std::vector<Match> inliers;
+  if(!sInliers.empty() && !Match::loadMatch(sInliers.c_str(), inliers)) {
+    std::cerr << "Failed reading matches from " << sInliers <<std::endl;
     return 1;
   }
 
@@ -135,8 +156,25 @@ int main(int argc, char **argv)
   if(!vec_inliers.empty()) vec_inliers[0]=0;
   std::partial_sum(vec_inliers.begin(), vec_inliers.end(), vec_inliers.begin());
 
-  fundamental_graphical_output(image1Gray, image2Gray,
-                               matchings, vec_inliers, &F,
-                               0, 0, sFileOut);
+  matrix<double> T1(3,3), T2(3,3);
+  Image<RGBColor> im = concat_images(image1Gray,image2Gray,&T1,&T2,true,dim);
+
+  for(std::vector<Match>::const_iterator it=inliers.begin();
+      it!=inliers.end(); ++it)
+      draw_match(*it, COL_IN, &im, T1, T2, false);
+
+  for(std::vector<Match>::const_iterator it=matchings.begin();
+      it!=matchings.end(); ++it)
+      draw_match(*it, COL_OUT_LINK, &im, T1, T2, link);
+  COL_EPI_DIST= RGBColor(0,255,255);
+  COL_EPI = RGBColor(192,192,0);
+  for(std::vector<Match>::const_iterator it=matchings.begin();
+      it!=matchings.end(); ++it) {
+      draw_epi(F,     inv(*it), T1, 20, &im, COL_EPI, &COL_EPI_DIST);
+      draw_epi(F.t(),     *it,  T2, 20, &im, COL_EPI, &COL_EPI_DIST);
+  }
+
+  libs::WriteImage(sFileOut, im);
+
   return 0;
 }

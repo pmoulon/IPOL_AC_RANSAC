@@ -404,9 +404,14 @@ vector<T> matrix<T>::col(int j) const
 
 /// Copy row number \a i.
 template <typename T>
-inline matrix<T> matrix<T>::row(int i) const
+inline vector<T> matrix<T>::row(int i) const
 {
-    return copy(i, i, 0, lastCol());
+    assert(i >= 0 && i < m_rows);
+    vector<T> r(m_cols);
+    const T* in = p + i*m_rows;
+    for(int i = 0; i < m_cols; i++)
+        r(i) = *in++;
+    return r;
 }
 
 template <class T>

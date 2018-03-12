@@ -39,11 +39,6 @@ RGBColor COL_OUT_LINK=COL_OUT;
 RGBColor COL_EPI=YELLOW;
 RGBColor COL_EPI_DIST=YELLOW; ///< Distance to epipolar line
 
-/// Inverse match
-inline Match inv(const Match& m) {
-    return Match(m.x2,m.y2,m.x1,m.y1);
-}
-
 /// Return 3x3 zoom-translation matrix
 static matrix<double> zoomtrans(double z, double dx, double dy) {
     matrix<double> T = matrix<double>::eye(3);
@@ -67,15 +62,20 @@ void draw_match(const Match& m,  RGBColor col, Image<RGBColor>* im,
     }
 }
 
+inline double sqr(double x) { return x*x; }
+
 static vector<double> epipolar_line(const matrix<double>& F, const Match& m) {
   vector<double> epi(m.x1, m.y1, 1);
-  double qnorm = epi.qnorm();
-  epi = F * epi;
-  if(epi.qnorm() < 1.0e-11f*qnorm) {
-      std::cerr << "Warning: not drawing line close to epipole " << m;
-      epi.fill(0);
-      return epi;
+  static const double distMinEpipole = 2.0; // Min distance to epipole
+  for(int i=0; i<3; i++) {
+      vector<double> p = cross(F.row(i), F.row((i+1)%3)); //epipole
+      if(sqr(p(2)*m.x1-p(0))+sqr(p(2)*m.y1-p(1))<sqr(distMinEpipole*p(2))) {
+          std::cerr << "Warning: not drawing line close to epipole " << m;
+          epi.fill(0);
+          return epi;          
+      }
   }
+  epi = F * epi;
   return epi / sqrt(epi(0)*epi(0) + epi(1)*epi(1));
 }
 
@@ -153,17 +153,20 @@ inline double diag(const Image<unsigned char>& im) {
 /// \param image1,image2 Left and right images.
 /// \param[out] T1,T2 Transforms coords from each image to concatenation.
 /// \param horizontalLayout Layout images horizontally or vertically?
-/// \return Concanetaion image.
+/// \param dim Dimension of output image (horizontal or vertical)
+/// \return Concatenation image.
+/// A negative value of dim means to keep the maximum dimension of the images.
 Image<RGBColor> concat_images(const Image<unsigned char>& image1,
                               const Image<unsigned char>& image2,
                               matrix<double>* T1,
                               matrix<double>* T2,
-                              bool horizontalLayout) {
+                              bool horizontalLayout, int dim) {
   int w1 = image1.Width(), h1 = image1.Height();
   int w2 = image2.Width(), h2 = image2.Height();
   int w=std::max(w1,w2), h=std::max(h1,h2);
+  if(dim>0) { if(horizontalLayout) w=dim; else h=dim; }
   float z = horizontalLayout? w/(float)(w1+w2): h/(float)(h1+h2);
-  int wc = w, hc=h;
+  int wc=w, hc=h;
   if(horizontalLayout) {
     hc = int(z*h);
     *T1 = zoomtrans(z, 0,   (hc-h1*z)/2);

@@ -101,4 +101,9 @@ struct Match {
     }
 };
 
+/// Inverse match
+inline Match inv(const Match& m) {
+    return Match(m.x2,m.y2,m.x1,m.y1);
+}
+
 #endif // MATCH_H
