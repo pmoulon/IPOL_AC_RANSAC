@@ -24,44 +24,12 @@
 #define WARPING_H
 
 #include <limits>
-#include "libOrsa/libNumerics/numerics.h"
+#include "libOrsa/libNumerics/homography.h"
 #include "libImage/sample.hpp"
-#include "demo/Rect.hpp"
+#include "Rect.hpp"
 
-/// Apply homography transform.
-/// Indicate if \a H is orientation preserving around the point.
-bool TransformH(const libNumerics::matrix<double> &H, double &x, double &y)
-{
-  libNumerics::vector<double> X(3);
-  X(0)=x; X(1)=y; X(2)=1.0;
-  X = H*X;
-  bool positive = (X(2)*H(2,2)>0);
-  X /= X(2);
-  x = X(0); y = X(1);
-  return positive;
-}
-
-// Compute the common area of warped by homography image1 and image2.
 bool IntersectionBox(int w1, int h1, int w2, int h2,
-                     const libNumerics::matrix<double>& H, Rect &inter)
-{
-  int xCoord[4] = {0, w1-1, w1-1,    0};
-  int yCoord[4] = {0,    0, h1-1, h1-1};
-
-  Rect rect1(std::numeric_limits<int>::max(),
-             std::numeric_limits<int>::max(),
-             std::numeric_limits<int>::min(),
-             std::numeric_limits<int>::min());
-  for(int i=0; i<4; ++i)
-  {
-    double xT=xCoord[i], yT=yCoord[i];
-    TransformH(H, xT, yT);
-    rect1.growTo(xT,yT);
-  }
-
-  Rect rect2(0,0,w2-1,h2-1);
-  return rect2.intersect(rect1, inter);
-}
+                     const libNumerics::matrix<double>& H, Rect &inter);
 
 /// Warp an image given a homography
 template <class Image>
@@ -78,7 +46,7 @@ void Warp(const Image &im, libNumerics::matrix<double> H, Image &out)
     for(int i=0; i<wOut; ++i)
     {
       double xT=i, yT=j;
-      if(TransformH(H, xT, yT) && im.Contains(yT,xT))
+      if(libNumerics::TransformH(H, xT, yT) && im.Contains(yT,xT))
         out(j,i) = libs::SampleLinear(im, (float)yT, (float)xT);
     }
 }
@@ -106,6 +74,7 @@ void Warp(const Image &imA, libNumerics::matrix<double> HA,
     {
       double xA=i, yA=j;
       double xB=i, yB=j;
+      using namespace libNumerics;
       bool bAContrib = TransformH(HA, xA, yA) && imA.Contains(yA,xA);
       bool bBContrib = TransformH(HB, xB, yB) && imB.Contains(yB,xB);
 

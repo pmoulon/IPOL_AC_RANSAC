@@ -1,8 +1,10 @@
 SET(SRC conditioning.hpp conditioning.cpp
         orsa_model.hpp orsa_model.cpp
+        match.hpp
         fundamental_model.hpp fundamental_model.cpp
         orsa_fundamental.hpp orsa_fundamental.cpp
-        match.hpp)
+        homography_model.hpp homography_model.cpp
+        orsa_homography.hpp orsa_homography.cpp)
 
 ADD_LIBRARY(Orsa ${SRC})
 
@@ -25,3 +27,5 @@ TARGET_LINK_LIBRARIES(Orsa Numerics)
 
 UNIT_TEST(fundamental_model Orsa)
 UNIT_TEST(fundamental_orsa Orsa)
+UNIT_TEST(homography_model Orsa)
+UNIT_TEST(homography_orsa Orsa)

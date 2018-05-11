@@ -1,31 +1,34 @@
-Instructions to build and run the orsa_homography demo.
+Instructions to build and run the orsa_homography and orsa_fundamental demos.
 
 # BUILD
 This project relies on CMake[1] system to build and test the code.
 
-LINUX/MAC :
-  $ cd .../orsa-fundamental_1.0
+## LINUX/MAC:
+```
+  $ cd .../orsa
   $ mkdir Build
   $ cd Build
   $ cmake -D CMAKE_BUILD_TYPE:string=Release ../src
   $ make
   $ make test
-
-  If you target to use an IDE to compile the code :
+```
+  If you target to use an IDE to compile the code:
+```
   $ cmake -G "CodeBlocks - Unix Makefiles" ../src
+```
 
-WINDOWS :
+## WINDOWS:
   Launch cmake-gui.exe
   
   Fill the blank path.
   "Where is the source code :" (where the general CMakeLists.txt is).
-    => orsa-fundamental_1.0/src
+    => orsa/src
   "Where to build the binaries:" (where build project and object files will be).
-    => orsa-fundamental_1.0/build
-    
+    => orsa/build
+
   Press Configure. (Select your IDE. ie, Visual Studio 10 Win64)
   Press Generate.
-  Go to the OrsaHomography/build path.
+  Go to the orsa/build path.
   Launch the Visual Studio solution and compile in release mode.
 
 [1] CMake is a the cross-platform, open-source build system.
@@ -37,25 +40,43 @@ CMake generates native makefiles and workspaces that can be used in the
 http://cmake.org
 
 # USAGE
-Go to the build folder. The executable is in the "demo" subfolder.
-Usage: ./demo/demo_orsa_fundamental imgInA imgInB [-p|--prec precision] [-s|--sift siftRatio] [-r|--read] allMatches.txt orsaMatches.txt [imgInliers imgOutliers] [imgEpipolar]
+Go to the build folder. The executables are in the "demo" subfolder.
+```
+Usage: ./demo/demo_orsa_homography [options] imgInA imgInB allMatches.txt orsaMatches.txt [imgInliers imgOutliers [imgMosaic [imgMosaicA imgMosaicB]]
+Usage: ./demo/demo_orsa_fundamental [options] imgInA imgInB [-p|--prec precision] [-s|--sift siftRatio] [-r|--read] allMatches.txt orsaMatches.txt [imgInliers imgOutliers] [imgEpipolar]
 - imgInA, imgInB: the two input image (JPG or PNG format)
-- -p,--prec precision: max precision (in pixels) of registration (0=arbitrary)
-- -s,--sift siftRatio: SIFT distance ratio of descriptors (default: 0.6)
-- -r,--read: Read file of matches allMatches.txt, do not compute SIFT points
-- allMatches.txt: output (input if option -r) text file of form "x1 y1 x2 y2"
+- allMatches.txt: output (input if option -r) text file of format "x1 y1 x2 y2"
 - orsaMatches.txt: output, but only with inliers.
 - imgInliers (optional): output image showing inliers
 - imgOutliers (optional): output image showing outliers and their error
 - imgEpipolar (optional): output image with small epipolar lines
+- imgOutliers (optional): output image showing outliers and their error
+- imgMosaic (optional): output mosaic image
+- imgMosaicA,imgMosaicB (optional): registered images
+- -p,--prec precision: max precision (in pixels) of registration (0=arbitrary)
+- -s,--sift siftRatio: SIFT distance ratio of descriptors (default: 0.6)
+- -r,--read: Read file of matches allMatches.txt, do not compute SIFT points
+- -c, --cut=ARG cut region of imagInA: wxh+x+y = rect [x,x+w] x [y,y+h]
+```
 
 # EXAMPLE
 Example data are in folder 'data'.
-- Try it:
+## Try homography estimation
+ demo_orsa_homography ramparts1.jpg ramparts2.jpg all.txt in.txt in.jpg out.jpg mosaic.jpg
+- It should find around 153 inliers among 157 unique matches.
+ Example of last output lines after a run:
+ nfa=-670.869 inliers=153 precision=1.57186 im2 (iter=469,sample=142,107,84,124)
+ Before refinement: Average/max error: 0.759469/1.57186
+ After  refinement: Average/max error: 0.63038/1.54558
+ H=[ 1.09237 -0.109262 -162.469;  0.166702 1.048 47.7264;  0.0002101 -3.14086e-05 1 ]
+ -- Render Mosaic --
+- Compare visually the output image mosaic.jpg and reference ramparts12.jpg
+## Try fundamental matrix estimation
  demo_orsa_fundamental carcassonne1.jpg carcassonne2.jpg all.txt in.txt in.png out.png epi.png
-- It should find around 310 inliers. Example of last output lines after a run:
-  nfa=-626.341 inliers=313 precision=1.10528 im2 (iter=641,sample=145,135,104,99,43,109,18)
-  Before refinement: Average/max error: 0.470291/1.10528
-  After  refinement: Average/max error: 0.388414/1.27198
-  F=[ -9.45557e-10 6.79737e-08 -7.2541e-06;  -9.74364e-08 9.55089e-09 0.00136427;  2.76561e-05 -0.00135752 0.0217882 ]
+- It should find around 310 inliers among 330 unique matches.
+ Example of last output lines after a run:
+ nfa=-647.739 inliers=310 precision=0.902245 im2 (iter=305,sample=147,247,281,116,190,225,60)
+ Before refinement: Average/max error: 0.359732/0.902245
+ After  refinement: Average/max error: 0.329296/1.06231
+ F=[ -8.35895e-10 7.99943e-08 -2.09236e-05;  -1.09042e-07 4.38371e-09 0.00136945;  4.07673e-05 -0.00135958 0.0216263 ]
 - Compare visually the output images in.png, out.png, and epi.png with the stored PNG images in folder 'data'.

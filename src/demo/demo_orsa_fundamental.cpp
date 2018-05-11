@@ -3,7 +3,7 @@
  * @brief Fundamental matrix estimation with ORSA algorithm
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2018 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,9 +40,12 @@ int main(int argc, char **argv)
   double precision=0;
   float fSiftRatio=0.6f;
   CmdLine cmd;
-  cmd.add( make_option('p',precision, "prec") );
-  cmd.add( make_option('s',fSiftRatio, "sift") );
-  cmd.add( make_switch('r', "read") );
+  cmd.add( make_option('p',precision, "prec")
+           .doc("max precision (in pixels) of registration (0=arbitrary)") );
+  cmd.add( make_option('s',fSiftRatio, "sift")
+           .doc("SIFT distance ratio of descriptors") );
+  cmd.add( make_switch('r', "read")
+           .doc("Read file of matches allMatches.txt, do not use SIFT"));
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -50,14 +53,20 @@ int main(int argc, char **argv)
     return 1;
   }
   if(argc!=5 && argc!=6 && argc!=7 && argc!=8) {
-    std::cerr << "Usage: " << argv[0] << " imgInA imgInB "
-              << "[-p|--prec precision] "
-              << "[-s|--sift siftRatio] "
-              << "[-r|--read] "
+    std::cerr << "Usage: " << argv[0] << " [options] imgInA imgInB "
               << "allMatches.txt orsaMatches.txt "
-              << "[imgInliers imgOutliers] [imgEpipolar]"
-              << std::endl;
-    return 1;
+              << "[imgInliers imgOutliers] [imgEpipolar]\n"
+              << "- imgInA, imgInB: the two input image (JPG or PNG format)\n"
+              << "- allMatches.txt: output (input if option -r) text file of "
+                 "format \"x1 y1 x2 y2\"\n"
+              << "- orsaMatches.txt: output, but only with inliers.\n"
+              << "- imgInliers (optional): output image showing inliers\n"
+              << "- imgOutliers (optional): output image showing outliers and "
+                 "their error\n"
+              << "- imgEpipolar (optional): output image with small epipolar "
+                 " lines\n"
+              << "\tOptions:\n" << cmd;
+      return 1;
   }
 
   // Init random seed
