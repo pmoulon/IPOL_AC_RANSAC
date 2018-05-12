@@ -21,46 +21,16 @@
  */
 
 #include "fundamental_graphical_output.hpp"
-
-#include <algorithm>
-#include <numeric>
-
-#include "demo/warping.hpp"
+#include "graphical_output.hpp"
+#include "warping.hpp"
 #include "libImage/image_drawing.hpp"
 #include "libImage/image_io.hpp"
 
 using namespace libNumerics;
 
 /// Default colors
-RGBColor COL_IN=GREEN;
-RGBColor COL_IN_LINK=COL_IN;
-RGBColor COL_OUT=RED;
-RGBColor COL_OUT_LINK=COL_OUT;
 RGBColor COL_EPI=YELLOW;
 RGBColor COL_EPI_DIST=YELLOW; ///< Distance to epipolar line
-
-/// Return 3x3 zoom-translation matrix
-static matrix<double> zoomtrans(double z, double dx, double dy) {
-    matrix<double> T = matrix<double>::eye(3);
-    T(0,0)=T(1,1) = z;
-    T(0,2) = dx;
-    T(1,2) = dy;
-    return T;
-}
-
-/// Draw line or endpoints of the match in concatenated image.
-void draw_match(const Match& m,  RGBColor col, Image<RGBColor>* im,
-                const matrix<double>& T1, const matrix<double>& T2, bool link) {
-    double x1=m.x1, y1=m.y1, x2=m.x2, y2=m.y2;
-    TransformH(T1, x1,y1);
-    TransformH(T2, x2,y2);
-    if(link)
-        libs::DrawLine((int)x1,(int)y1,(int)x2, (int)y2, col, im);
-    else {
-        libs::DrawCircle((int)x1,(int)y1, 2, col, im);
-        libs::DrawCircle((int)x2,(int)y2, 2, col, im);
-    }
-}
 
 inline double sqr(double x) { return x*x; }
 
@@ -72,7 +42,7 @@ static vector<double> epipolar_line(const matrix<double>& F, const Match& m) {
       if(sqr(p(2)*m.x1-p(0))+sqr(p(2)*m.y1-p(1))<sqr(distMinEpipole*p(2))) {
           std::cerr << "Warning: not drawing line close to epipole " << m;
           epi.fill(0);
-          return epi;          
+          return epi;
       }
   }
   epi = F * epi;
@@ -149,47 +119,6 @@ inline double diag(const Image<unsigned char>& im) {
     return sqrt(w*w+h*h);
 }
 
-/// Concatenate images side by side.
-/// \param image1,image2 Left and right images.
-/// \param[out] T1,T2 Transforms coords from each image to concatenation.
-/// \param horizontalLayout Layout images horizontally or vertically?
-/// \param dim Dimension of output image (horizontal or vertical)
-/// \return Concatenation image.
-/// A negative value of dim means to keep the maximum dimension of the images.
-Image<RGBColor> concat_images(const Image<unsigned char>& image1,
-                              const Image<unsigned char>& image2,
-                              matrix<double>* T1,
-                              matrix<double>* T2,
-                              bool horizontalLayout, int dim) {
-  int w1 = image1.Width(), h1 = image1.Height();
-  int w2 = image2.Width(), h2 = image2.Height();
-  int w=std::max(w1,w2), h=std::max(h1,h2);
-  if(dim>0) { if(horizontalLayout) w=dim; else h=dim; }
-  float z = horizontalLayout? w/(float)(w1+w2): h/(float)(h1+h2);
-  int wc=w, hc=h;
-  if(horizontalLayout) {
-    hc = int(z*h);
-    *T1 = zoomtrans(z, 0,   (hc-h1*z)/2);
-    *T2 = zoomtrans(z, w1*z,(hc-h2*z)/2);
-  } else {
-    wc = int(z*w);
-    *T1 = zoomtrans(z, (wc-w1*z)/2, 0);
-    *T2 = zoomtrans(z, (wc-w2*z)/2, h1*z);
-  }
-  Image<unsigned char> concat(wc, hc, 255);
-  Warp(image1, *T1, image2, *T2, concat);
-
-  // Split
-  double xSplit1=0,ySplit1=0, xSplit2=0,ySplit2=image2.Height();
-  TransformH(*T2, xSplit1,ySplit1);
-  TransformH(*T2, xSplit2,ySplit2);
-  Image<RGBColor> im;
-  libs::convertImage(concat, &im);
-  libs::DrawLine(xSplit1,ySplit1, xSplit2,ySplit2, BLUE, &im);
-
-  return im;
-}
-
 /// Graphical output for estimated fundamental matrix.
 /// \param image1,image2 Left and right images.
 /// \param vec_all All correspondences.
@@ -209,15 +138,7 @@ void fundamental_graphical_output(const Image<unsigned char>& image1,
 {
   // List of outliers
   std::vector<int> vec_out;
-  {
-    std::sort(vec_in.begin(), vec_in.end());
-    // C++11: replace following three lines with std::iota
-    std::vector<int> all(vec_all.size(), 1);
-    if(! all.empty()) all[0]=0;
-    std::partial_sum(all.begin(), all.end(), all.begin());
-    std::set_difference(all.begin(), all.end(), vec_in.begin(), vec_in.end(),
-                        std::back_inserter(vec_out));
-  }
+  complement(vec_all.size(), vec_in, &vec_out);
 
   matrix<double> T1(3,3), T2(3,3);
   Image<RGBColor> im = concat_images(image1,image2,&T1,&T2);

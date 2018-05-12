@@ -3,7 +3,7 @@
  * @brief Graphical output to show homography estimation
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2018 Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,10 +30,13 @@
 #include "libImage/pixelTypes.hpp"
 class Rect;
 
+/// Default color for homography error (can be changed)
+extern RGBColor COL_ERRH;
+
 void homography_matches_output(const Image<unsigned char>& image1,
                                const Image<unsigned char>& image2,
                                const std::vector<Match>& vec_all,
-                               const std::vector<int>& vec_in,
+                               std::vector<int> vec_in,
                                const libNumerics::matrix<double>* H,
                                const char* fileIn, const char* fileOut);
 

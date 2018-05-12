@@ -30,6 +30,7 @@
 #include "cmdLine.h"
 #include "siftMatch.hpp"
 #include "fundamental_graphical_output.hpp"
+#include "graphical_output.hpp"
 
 using namespace libNumerics;
 

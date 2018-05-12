@@ -9,6 +9,7 @@ endif (OPENMP_FOUND)
 ADD_EXECUTABLE(demo_orsa_fundamental
                demo_orsa_fundamental.cpp
                fundamental_graphical_output.cpp
+               graphical_output.cpp
                Rect.cpp warping.cpp)
 TARGET_LINK_LIBRARIES(demo_orsa_fundamental Orsa image SiftAnatomy)
 
@@ -20,8 +21,9 @@ TARGET_LINK_LIBRARIES(put_epipolar image)
 # display the corresponding mosaic.
 ADD_EXECUTABLE(demo_orsa_homography
                demo_orsa_homography.cpp
-               homography_graphical_output.cpp homography_graphical_output.hpp
-               Rect.cpp Rect.hpp
+               homography_graphical_output.cpp
+               graphical_output.cpp
+               Rect.cpp
                siftMatch.hpp
                warping.cpp
                cmdLine.h)
@@ -37,5 +39,6 @@ IF(UNIX)
 ENDIF(UNIX)
 
 # Show small epipolar lines
-ADD_EXECUTABLE(show_epi show_epi.cpp fundamental_graphical_output.cpp Rect.cpp)
+ADD_EXECUTABLE(show_epi show_epi.cpp
+               fundamental_graphical_output.cpp graphical_output.cpp Rect.cpp)
 TARGET_LINK_LIBRARIES(show_epi Orsa image SiftAnatomy)

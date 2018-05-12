@@ -3,7 +3,7 @@
  * @brief Graphical output to show homography estimation
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2018 Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,69 +21,18 @@
  */
 
 #include "homography_graphical_output.hpp"
+#include "graphical_output.hpp"
 #include <algorithm>
 #include <iostream>
 #include "libOrsa/libNumerics/homography.h"
 #include "libImage/image_drawing.hpp"
 #include "libImage/image_io.hpp"
 #include "warping.hpp"
+#include "Rect.hpp"
 
-/// Draw inlier and oulier matches in images.
-///
-/// Inliers (resp. outliers) are linked by a green (resp. red) line.
-/// If \a H is not null, it is the estimated homography. Then an outlier right
-/// endpoint is also linked in yellow to its predicted point according to the
-/// homography.
-/// \param[in] vec_all All matches
-/// \param[in] vec_in Index of inliers in \a vec_all
-/// \param[in] H Estimated homography (if any) registering left on right image
-/// \param[in] H1 Transform from left image coordinates to output images
-/// \param[in] H2 Transform from right image coordinates to output images
-/// \param[in,out] in Image where to draw inliers
-/// \param[in,out] out Image where to draw outliers
-void display_match(const std::vector<Match>& vec_all,
-                   std::vector<int> vec_in,
-                   const libNumerics::matrix<double>* H,
-                   const libNumerics::matrix<double>& H1,
-                   const libNumerics::matrix<double>& H2,
-                   Image<RGBColor>& in, Image<RGBColor>& out)
-{
-  std::sort(vec_in.begin(), vec_in.end());
+using namespace libNumerics;
 
-  // For outliers, show vector (yellow) from prediction to observation
-  const RGBColor col=YELLOW;
-  std::vector<int>::const_iterator it = vec_in.begin();
-  std::vector<Match>::const_iterator m = vec_all.begin();
-  if(H) // Otherwise, no prediction
-    for(int i=0; m != vec_all.end(); ++m, ++i) {
-      if(it != vec_in.end() && i==*it)
-        ++it;
-      else { //Outlier
-        double x1=m->x1, y1=m->y1, x2=m->x2, y2=m->y2;
-        TransformH(H2 * *H, x1, y1);
-        TransformH(H2, x2, y2);
-        libs::DrawLine((int)x1,(int)y1,(int)x2,(int)y2, col,&out);
-      }
-    }
-
-  // Show link for inliers (green) and outliers (red)
-  it = vec_in.begin();
-  m = vec_all.begin();
-  for(int i=0; m != vec_all.end(); ++m, ++i)
-  {
-    Image<RGBColor>* im=&out;
-    RGBColor col=RED;
-    if(it != vec_in.end() && i==*it) {
-      ++it;
-      im=&in;
-      col=GREEN;
-    }
-    double x1=m->x1, y1=m->y1, x2=m->x2, y2=m->y2;
-    TransformH(H1, x1, y1);
-    TransformH(H2, x2, y2);
-    libs::DrawLine((int)x1,(int)y1,(int)x2, (int)y2, col, im);
-  }
-}
+RGBColor COL_ERRH=YELLOW;
 
 /// Return 3x3 translation matrix
 libNumerics::matrix<double> translation(double dx, double dy) {
@@ -93,37 +42,32 @@ libNumerics::matrix<double> translation(double dx, double dy) {
   return T;
 }
 
-/// Return 3x3 zoom-translation matrix
-libNumerics::matrix<double> zoomtrans(double z, double dx, double dy) {
-  libNumerics::matrix<double> T = libNumerics::matrix<double>::eye(3);
-  T(0,0)=T(1,1) = z;
-  T(0,2) = dx;
-  T(1,2) = dy;
-  return T;
-}
-
 /// Output inliers and outliers in image files \a fileIn and \a fileOut.
 void homography_matches_output(const Image<unsigned char>& image1,
                                const Image<unsigned char>& image2,
                                const std::vector<Match>& vec_all,
-                               const std::vector<int>& vec_in,
+                               std::vector<int> vec_in,
                                const libNumerics::matrix<double>* H,
                                const char* fileIn, const char* fileOut) {
-  const int w1=image1.Width(), h1=image1.Height();
-  const int w2=image2.Width(), h2=image2.Height();
-  int w = std::max(w1,w2);    // Set width as max of two images
-  float z = w/(float)(w1+w2); // Keep aspect ratio
-  Image<unsigned char> concat(w, int(z*std::max(h1,h2)), 255);
-
-  libNumerics::matrix<double> T1=zoomtrans(z, 0,   (concat.Height()-h1*z)/2);
-  libNumerics::matrix<double> T2=zoomtrans(z, w1*z,(concat.Height()-h2*z)/2);
-  Warp(image1, T1, image2, T2, concat);
-
-  Image<RGBColor> in;
-  libs::convertImage(concat, &in);
-  libs::DrawLine(int(w1*z),0, int(w1*z),int(concat.Height()), BLUE, &in);
+  matrix<double> T1(3,3), T2(3,3);
+  Image<RGBColor> in = concat_images(image1,image2,&T1,&T2);
   Image<RGBColor> out(in);
-  display_match(vec_all, vec_in, H, T1, T2, in, out);
+
+  // List of outliers
+  std::vector<int> vec_out;
+  complement(vec_all.size(), vec_in, &vec_out);
+
+  // For outliers, show error vector from prediction to observation
+  std::vector<int>::const_iterator it;
+  if(H) // Otherwise, no prediction
+    for(it=vec_out.begin(); it!=vec_out.end(); ++it)
+      draw_match(vec_all.at(*it), COL_ERRH, &out, T2**H, T2);
+
+  // Draw links for inliers and outliers in respective image
+  for(it=vec_out.begin(); it!=vec_out.end(); ++it)
+    draw_match(vec_all.at(*it), COL_OUT_LINK, &out, T1, T2);
+  for(it=vec_in.begin(); it!=vec_in.end(); ++it)
+    draw_match(vec_all.at(*it), COL_IN_LINK, &in, T1, T2);
 
   libs::WriteImage(fileIn,  in);
   libs::WriteImage(fileOut, out);

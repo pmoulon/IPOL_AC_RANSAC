@@ -33,17 +33,6 @@
 /// Global colors, having default values (green, red, yellow). Can be changed.
 extern RGBColor COL_IN,COL_IN_LINK, COL_OUT,COL_OUT_LINK, COL_EPI,COL_EPI_DIST;
 
-Image<RGBColor> concat_images(const Image<unsigned char>& image1,
-                              const Image<unsigned char>& image2,
-                              libNumerics::matrix<double>* T1,
-                              libNumerics::matrix<double>* T2,
-                              bool horizontalLayout=true, int dim=0);
-
-void draw_match(const Match& m,  RGBColor col, Image<RGBColor>* im,
-                const libNumerics::matrix<double>& T1,
-                const libNumerics::matrix<double>& T2,
-                bool link=true);
-
 bool draw_epi(const libNumerics::matrix<double>& F, const Match& m,
               const libNumerics::matrix<double>& T, double halfLength,
               Image<RGBColor>* out, RGBColor col, const RGBColor* colDist=0);
