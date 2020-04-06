@@ -3,9 +3,9 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
 
-set(VERSION "1.2.8")
+set(VERSION "1.2.11")
 
-set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
 set(ZLIB_LIBRARIES zlibstatic PARENT_SCOPE)
 
 option(ASM686 "Enable building i686 assembly implementation")
@@ -69,37 +69,32 @@ if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
-# if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-#     # If we're doing an out of source build and the user has a zconf.h
-#     # in their source tree...
-#     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h)
-#         message(STATUS "Renaming")
-#         message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
-#         message(STATUS "to 'zconf.h.included' because this file is included with zlib")
-#         message(STATUS "but CMake generates it automatically in the build directory.")
-#         file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
-#   endif()
-# endif()
+if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+    # If we're doing an out of source build and the user has a zconf.h
+    # in their source tree...
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h)
+        message(STATUS "Renaming")
+        message(STATUS "    ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h")
+        message(STATUS "to 'zconf.h.included' because this file is included with zlib")
+        message(STATUS "but CMake generates it automatically in the build directory.")
+        file(RENAME ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.included)
+  endif()
+endif()
 
 set(ZLIB_PC ${CMAKE_CURRENT_BINARY_DIR}/zlib.pc)
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/zlib.pc.cmakein
 		${ZLIB_PC} @ONLY)
-# configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
-# 		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
-# include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR})
 configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/zconf.h.cmakein
-                ${CMAKE_CURRENT_SOURCE_DIR}/zconf.h @ONLY)
+		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR})
+
 
 #============================================================================
 # zlib
 #============================================================================
 
-# set(ZLIB_PUBLIC_HDRS
-#     ${CMAKE_CURRENT_BINARY_DIR}/zconf.h
-#     zlib.h
-# )
 set(ZLIB_PUBLIC_HDRS
-    zconf.h
+    ${CMAKE_CURRENT_BINARY_DIR}/zconf.h
     zlib.h
 )
 set(ZLIB_PRIVATE_HDRS
