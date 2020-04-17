@@ -20,11 +20,8 @@
 
 #include <vector>
 #include "homography_model.hpp"
-#include "libNumerics/matrix.h"
 #include "libNumerics/homography.h"
 #include "CppUnitLite/TestHarness.h"
-
-typedef libNumerics::matrix<double> Mat;
 
 #define EXPECT_MATRIX_NEAR(a, b, tolerance) \
 do { \

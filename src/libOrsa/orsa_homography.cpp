@@ -22,6 +22,7 @@
 
 #include "orsa_homography.hpp"
 #include "homography_model.hpp"
+#include "orsa.hpp"
 #include "libNumerics/homography.h"
 
 #include <iostream>
@@ -80,10 +81,16 @@ bool orsa_homography(const std::vector<Match>& vec_matchings,
     xB(1,i) = vec_matchings[i].y2;
   }
 
-  orsa::HomographyModel model(xA, w1, h1, xB, w2, h2, true);
+  HomographyModel model(xA, w1, h1, xB, w2, h2, true);
+  double N1 = model.NormalizationFactor(0);
+  double N2 = model.NormalizationFactor(1);
   //model.setConvergenceCheck(true);
+  double alpha0Left  = M_PI/(w1*(double)h1) /(N1*N1);
+  double alpha0Right = M_PI/(w2*(double)h2) /(N2*N2);
 
-  if(model.orsa(vec_inliers, nbIter, &precision, &H, true)>0.0)
+  Orsa orsa(&model, alpha0Left, alpha0Right);
+
+  if(orsa.run(vec_inliers, nbIter, &precision, &H, true)>0.0)
     return false;
   std::cout << "Before refinement: ";
   display_stats(vec_matchings, vec_inliers, H);

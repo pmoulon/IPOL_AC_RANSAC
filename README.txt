@@ -22,16 +22,17 @@ random sampling procedure.
 
 - Reviewed files in IPOL:
 src/libOrsa/libNumerics/cubicRoots.h
-src/libOrsa/fundamental_model.hpp
-src/libOrsa/fundamental_model.cpp
-src/libOrsa/orsa_fundamental.hpp
-src/libOrsa/orsa_fundamental.cpp
+src/libOrsa/model_estimator.{hpp,cpp}
+src/libOrsa/homography_model.{hpp,cpp}
+src/libOrsa/fundamental_model.{hpp.cpp}
+src/libOrsa/orsa_homography.{hpp,cpp}
+src/libOrsa/orsa_fundamental.{hpp,cpp}
+src/demo/demo_orsa_homography.cpp
 src/demo/demo_orsa_fundamental.cpp
-src/demo/fundamental_graphical_output.hpp
-src/demo/fundamental_graphical_output.cpp
+src/demo/homography_graphical_output.{hpp,cpp}
+src/demo/fundamental_graphical_output.{hpp,cpp}
 src/demo/put_epipolar.cpp
-src/demo/Rect.hpp
-src/demo/Rect.cpp
+src/demo/Rect.{hpp,cpp}
 
 - The SIFT algorithm used by the demo is based on
   sift_anatomy_20141201

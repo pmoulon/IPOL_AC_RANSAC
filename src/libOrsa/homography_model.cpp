@@ -3,7 +3,8 @@
  * @brief Homography matrix model
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011,2020 Pascal Monasse
+ * Copyright (c) 2011 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,10 +40,7 @@ static const double ICOND_MIN = 0.1;
 HomographyModel::HomographyModel(const Mat &x1, int w1, int h1,
                                  const Mat &x2, int w2, int h2,
                                  bool symError)
-: OrsaModel(x1, w1, h1, x2, w2, h2), symError_(symError) {
-  logalpha0_[0] = log10(M_PI/(w1*(double)h1) /(N1_(0,0)*N1_(0,0)));
-  logalpha0_[1] = log10(M_PI/(w2*(double)h2) /(N2_(0,0)*N2_(0,0)));
-}
+: ModelEstimator(x1, w1, h1, x2, w2, h2), symError_(symError) {}
 
 /// Unnormalize a given model (from normalized to image space).
 void HomographyModel::Unnormalize(Model *model) const  {
@@ -60,7 +58,7 @@ inline double sqr(double x) {
 /// \param index The correspondence index
 /// \param side In which image is the error measured?
 /// \return The square reprojection error.
-double HomographyModel::Error(const Mat &H, int index, int* side) const {
+double HomographyModel::Error(const Model &H, int index, int* side) const {
   double err = std::numeric_limits<double>::infinity();
   if(side) *side=1;
   libNumerics::vector<double> x(3);

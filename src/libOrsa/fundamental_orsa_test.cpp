@@ -18,11 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <vector>
-#include <algorithm>
-
-#include "libOrsa/fundamental_model.hpp"
+#include "fundamental_model.hpp"
+#include "orsa.hpp"
 #include "CppUnitLite/TestHarness.h"
+#include <algorithm>
 
 typedef libNumerics::matrix<double> Mat;
 
@@ -55,10 +54,15 @@ TEST(Fundamental_Orsa, Test)
 
   /// Create the Kernel (Model estimator and tester)
   orsa::FundamentalModel model(x1, 5, 5, x2, 5, 5);
+  double D = sqrt(5*(double)5 + 5*(double)5); // Diameter
+  double A = 5*(double)5; // Area
+  double alpha0  = 2.0*D/A /model.NormalizationFactor(0);
+  orsa::Orsa orsa(&model, alpha0, alpha0);
+
   Mat F(3,3);
   std::vector<int> vec_inliers;
   /// Orsa (robust estimation routine)
-  model.orsa(vec_inliers, 100, NULL, &F, true);
+  orsa.run(vec_inliers, 100, NULL, &F, true);
 
   const double expectedPrecision = 1e-8;
   const double & ep = expectedPrecision;

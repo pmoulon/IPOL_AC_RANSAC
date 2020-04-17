@@ -54,7 +54,7 @@ template <class Kernel>
 bool ExpectKernelProperties(const Mat &x1, int w1, int h1,
                             const Mat &x2, int w2, int h2) {
   bool bOk = true;
-  orsa::OrsaModel* kernel = new Kernel(x1, w1, h1, x2, w2, h2);
+  orsa::ModelEstimator* kernel = new Kernel(x1, w1, h1, x2, w2, h2);
   std::vector<int> samples;
   for (int i = 0; i < x1.ncol(); ++i) {
     samples.push_back(i);

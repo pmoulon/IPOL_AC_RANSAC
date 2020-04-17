@@ -3,7 +3,8 @@
  * @brief Fundamental matrix model
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2015 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2020 Pascal Monasse
+ * Copyright (c) 2011-2015 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,50 +26,42 @@
 #include "libNumerics/cubicRoots.h"
 #include "libNumerics/numerics.h"
 
+typedef libNumerics::vector<double> Vec;
+
 namespace orsa {
 
-/// Min product of norms of two collinear vectors to be considered positive. Below that
-/// threshold, one of the vectors is considered as too small to be reliable. This is used
-/// in FundamentalModel::checkF.
+/// Min product of norms of two collinear vectors to be considered positive.
+/// Below that threshold, one of the vectors is considered as too small to be
+/// reliable. This is used in FundamentalModel::checkF.
 static const double MIN_PRODUCT_NORMS=1e-5;
 
 /// Constructor, computing logalpha0_
 FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
                                    const Mat &x2, int w2, int h2,
                                    bool symError)
-: OrsaModel(x1, w1, h1, x2, w2, h2), symError_(symError) {
-  double D, A; // Diameter and area of image
-  D = sqrt(w1*(double)w1 + h1*(double)h1);
-  A = w1*(double)h1;
-  logalpha0_[0] = log10(2.0*D/A /N1_(0,0));
-  D = sqrt(w2*(double)w2 + h2*(double)h2);
-  A = w2*(double)h2;
-  logalpha0_[1] = log10(2.0*D/A /N2_(0,0));
-}
+: ModelEstimator(x1, w1, h1, x2, w2, h2), symError_(symError) {}
 
 /// Unnormalize a given model (from normalized to image space).
 void FundamentalModel::Unnormalize(Model * model) const  {
   *model = N1_.t() * (*model) * N2_;
 }
 
-/**
- * Build a nx9 matrix from point matches, where each row is equivalent to the
- * equation xT*F*x' = 0 for a single correspondence pair (x, x'). The domain of
- * the matrix is a 9 element vector corresponding to F. In other words, set up
- * the linear system
- *   Af = 0,
- * where f is the F matrix as a 9-vector rather than a 3x3 matrix (row
- * major). If the points are well conditioned and there are 8 or more, then
- * the nullspace should be rank one. If the nullspace is two dimensional,
- * then the rank 2 constraint must be enforced to identify the appropriate F
- * matrix.
- *
- * Do not resize the matrix A, assumed to have the appropriate size already.
- */
-static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
-                                   const OrsaModel::Mat &x2,
+/// Build an nx9 matrix from point matches, where each row is equivalent to the
+/// equation xT*F*x' = 0 for a single correspondence pair (x, x'). The domain of
+/// the matrix is a 9 element vector corresponding to F. In other words, set up
+/// the linear system
+///   Af = 0,
+/// where f is the F matrix as a 9-vector rather than a 3x3 matrix (row
+/// major). If the points are well conditioned and there are 8 or more, then
+/// the nullspace should be rank one. If the nullspace is two dimensional,
+/// then the rank 2 constraint must be enforced to identify the appropriate F
+///  matrix.
+///
+/// Do not resize the matrix A, assumed to have the appropriate size already.
+static void EncodeEpipolarEquation(const ModelEstimator::Mat &x1,
+                                   const ModelEstimator::Mat &x2,
                                    const std::vector<int> &indices,
-                                   OrsaModel::Mat *A) {
+                                   ModelEstimator::Mat *A) {
   for (size_t i = 0; i < indices.size(); ++i) {
     int j = indices[i];
     (*A)(i, 0) = x1(0,j) * x2(0,j);  // 0 represents x coords,
@@ -84,7 +77,7 @@ static void EncodeEpipolarEquation(const OrsaModel::Mat &x1,
 }
 
 void FundamentalModel::Fit(const std::vector<int> &indices,
-                           std::vector<Mat> *Fs) const {
+                           std::vector<Model> *Fs) const {
   assert(2 == x1_.nrow());
   assert(7 <= x1_.ncol());
   assert(x1_.nrow() == x2_.nrow());
@@ -105,7 +98,7 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
 /// \param index The point correspondence.
 /// \param side In which image is the error measured?
 /// \return The square reprojection error.
-double FundamentalModel::Error(const Mat &F, int index, int* side) const {
+double FundamentalModel::Error(const Model &F, int index, int* side) const {
   double xa = x1_(0,index), ya = x1_(1,index);
   double xb = x2_(0,index), yb = x2_(1,index);
 
@@ -133,9 +126,7 @@ double FundamentalModel::Error(const Mat &F, int index, int* side) const {
 }
 
 /// Determinant of 3x3 matrix expressed by its columns (v1 v2 v3).
-inline double det3(const OrsaModel::Vec& v1,
-                   const OrsaModel::Vec& v2,
-                   const OrsaModel::Vec& v3){
+inline double det3(const Vec& v1, const Vec& v2, const Vec& v3){
   return v1(0)*(v2(1)*v3(2)-v2(2)*v3(1))-
          v1(1)*(v2(0)*v3(2)-v2(2)*v3(0))+
          v1(2)*(v2(0)*v3(1)-v2(1)*v3(0));
@@ -191,8 +182,8 @@ void FundamentalModel::algo8pt(const Mat& A, std::vector<Mat> *Fs) const {
 }
 
 /// Return left epipole of matrix F. The returned vector is of norm 1.
-static OrsaModel::Vec leftEpipole(const OrsaModel::Mat& F) {
-    OrsaModel::Vec e(3), e2(3);
+static Vec leftEpipole(const ModelEstimator::Mat& F) {
+    Vec e(3), e2(3);
     double norm=-1;
     for(int i=0; i<3; i++)
         for(int j=i+1; j<3; j++) {
@@ -207,7 +198,8 @@ static OrsaModel::Vec leftEpipole(const OrsaModel::Mat& F) {
 }
 
 /// Filter out F matrices that are not possible.
-void FundamentalModel::checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const {
+void FundamentalModel::checkF(const std::vector<int> &indices,
+                              std::vector<Mat> *Fs) const {
   for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
     Vec e = leftEpipole(*F);
     std::vector<int>::const_iterator it=indices.begin();

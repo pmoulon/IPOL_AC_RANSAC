@@ -1,10 +1,11 @@
 SET(SRC conditioning.hpp conditioning.cpp
-        orsa_model.hpp orsa_model.cpp
         match.hpp
-        fundamental_model.hpp fundamental_model.cpp
-        orsa_fundamental.hpp orsa_fundamental.cpp
+        model_estimator.hpp model_estimator.cpp
         homography_model.hpp homography_model.cpp
-        orsa_homography.hpp orsa_homography.cpp)
+        fundamental_model.hpp fundamental_model.cpp
+        orsa.hpp orsa.cpp
+        orsa_homography.hpp orsa_homography.cpp
+        orsa_fundamental.hpp orsa_fundamental.cpp)
 
 ADD_LIBRARY(Orsa ${SRC})
 

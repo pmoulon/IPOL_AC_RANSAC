@@ -3,7 +3,8 @@
  * @brief Fundamental matrix model
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011,2020 Pascal Monasse
+ * Copyright (c) 2011 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,9 +24,7 @@
 #ifndef FUNDAMENTAL_MODEL_H_
 #define FUNDAMENTAL_MODEL_H_
 
-#include <vector>
-#include "orsa_model.hpp"
-#include "libNumerics/matrix.h"
+#include "model_estimator.hpp"
 
 namespace orsa {
 
@@ -33,7 +32,7 @@ namespace orsa {
 ///
 /// See page 281 of book by Hartley-Zisserman.
 /// The equation is \f$det(F_1 + \alpha F_2) = 0\f$.
-class FundamentalModel : public OrsaModel {
+class FundamentalModel : public ModelEstimator {
 public:
   FundamentalModel(const Mat &x1, int w1, int h1,
                    const Mat &x2, int w2, int h2,
@@ -48,10 +47,10 @@ public:
   /// Distance used to distinguish inlier/outlier is to a line
   virtual bool DistToPoint() const { return false; }
 
-  void Fit(const std::vector<int> &indices, std::vector<Mat> *Fs) const;
+  void Fit(const std::vector<int> &indices, std::vector<Model> *Fs) const;
 
   /// Square reprojection error for a given point through F.
-  double Error(const Mat &F, int index, int* side=0) const;
+  double Error(const Model &F, int index, int* side=0) const;
   
   /// Unnormalize a given model (from normalized to image space).
   void Unnormalize(Model *model) const;

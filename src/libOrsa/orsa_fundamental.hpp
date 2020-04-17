@@ -1,9 +1,11 @@
 /**
  * @file orsa_fundamental.hpp
- * @brief Fundamental matrix estimation with ORSA algorithm
+ * @brief Fundamental matrix estimation with ORSA algorithm.
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2016 Lionel Moisan
+ * Copyright (c) 2011-2016,2020 Pascal Monasse
+ * Copyright (c) 2011-2016 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,9 +25,9 @@
 #ifndef ORSA_FUNDAMENTAL_H
 #define ORSA_FUNDAMENTAL_H
 
-#include <vector>
 #include "libNumerics/matrix.h"
 #include "match.hpp"
+#include <vector>
 
 namespace orsa {
 /// ORSA fundamental matrix estimation.

@@ -3,7 +3,8 @@
  * @brief Homography matrix model
  * @author Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011 Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011,2020 Pascal Monasse
+ * Copyright (c) 2011 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,15 +24,12 @@
 #ifndef HOMOGRAPHY_MODEL_H_
 #define HOMOGRAPHY_MODEL_H_
 
-#include <vector>
-#include <cmath>
-#include "libOrsa/orsa_model.hpp"
-#include "libNumerics/matrix.h"
+#include "libOrsa/model_estimator.hpp"
 
 namespace orsa {
 
 /// Homography model used for robust estimation with ORSA algorithm.
-class HomographyModel : public OrsaModel {
+class HomographyModel : public ModelEstimator {
 public:
   HomographyModel(const Mat &x1, int w1, int h1,
                   const Mat &x2, int w2, int h2,
@@ -50,7 +48,7 @@ public:
   void Fit(const std::vector<int> &indices, std::vector<Mat> *H) const;
 
   /// Square reprojection error for a given point through the model H.
-  double Error(const Mat &H, int index, int* side=0) const;
+  double Error(const Model &H, int index, int* side=0) const;
 
   /// Unnormalize a given model (from normalized to image space).
   void Unnormalize(Model *model) const;

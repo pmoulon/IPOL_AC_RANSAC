@@ -1,9 +1,11 @@
 /**
- * @file orsa_model.cpp
- * @brief Model estimation by ORSA (aka AC-RANSAC) algorithm
+ * @file orsa.cpp
+ * @brief Model estimation by ORSA (aka AC-RANSAC) algorithm.
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  *
- * Copyright (c) 2007,2010-2011 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2007 Lionel Moisan
+ * Copyright (c) 2010-2011,2020 Pascal Monasse
+ * Copyright (c) 2010-2011 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,45 +22,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "libOrsa/orsa_model.hpp"
-#include "libOrsa/conditioning.hpp"
+#include "libOrsa/orsa.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
-#include <vector>
 
 namespace orsa {
 
-/// Points are normalized according to image dimensions. Subclass must
-/// initialize logalpha0_ and take account of normalization in doing that.
-/// Matrices \a x1 and \a x2 are 2xn, representing Cartesian coordinates.
-OrsaModel::OrsaModel(const Mat &x1, int w1, int h1,
-                     const Mat &x2, int w2, int h2)
-: x1_(x1.nrow(), x1.ncol()), x2_(x2.nrow(), x2.ncol()),
-  N1_(3,3), N2_(3,3), bConvergence(false) {
-  assert(2 == x1_.nrow());
-  assert(x1_.nrow() == x2_.nrow());
-  assert(x1_.ncol() == x2_.ncol());
-
-  // Normalize both images by same factor, as our thresholds for SVD are based
-  // on zoom around 1
-  int w=std::max(w1,w2), h=std::max(h1,h2);
-  NormalizePoints(x1, &x1_, &N1_, w, h);
-  NormalizePoints(x2, &x2_, &N2_, w, h);
-  logalpha0_[0] = logalpha0_[1] = 0;
-}
-
-/// If multiple solutions are possible, return false.
-bool OrsaModel::ComputeModel(const std::vector<int> &indices,
-                             Model *model) const {
-    std::vector<Model> models;
-    Fit(indices, &models);
-    if(models.size() != 1)
-      return false;
-    *model = models.front();
-    Unnormalize(model);
-    return true;
+/// \a alpha0Left and \a alpha0Right are the probabilities of having an error
+/// of 1 pixel in left or right image.
+/// The class does not take ownership of the estimator instance but depends on
+/// it. Be careful that it is still valid during the lifetime of Orsa object.
+Orsa::Orsa(const ModelEstimator* estimator,
+           double alpha0Left, double alpha0Right)
+: estimator_(estimator), bConvergence(false) {
+  logalpha0_[0] = log10(alpha0Left);
+  logalpha0_[1] = log10(alpha0Right);
 }
 
 /// logarithm (base 10) of binomial coefficient
@@ -90,14 +70,14 @@ static void makelogcombi_k(int k,int nmax, std::vector<float> & l)
 }
 
 /// Find best NFA and number of inliers wrt square error threshold in e.
-OrsaModel::ErrorIndex OrsaModel::bestNFA(const std::vector<ErrorIndex>& e,
-                                         double loge0,
-                                         double maxThreshold,
-                                         const std::vector<float> &logc_n,
-                                         const std::vector<float> &logc_k) const
+Orsa::ErrorIndex Orsa::bestNFA(const std::vector<ErrorIndex>& e,
+                               double loge0,
+                               double maxThreshold,
+                               const std::vector<float> &logc_n,
+                               const std::vector<float> &logc_k) const
 {
-  const int startIndex = SizeSample();
-  const double multError = (DistToPoint()? 1.0: 0.5);
+  const int startIndex = estimator_->SizeSample();
+  const double multError = (estimator_->DistToPoint()? 1.0: 0.5);
 
   ErrorIndex bestIndex(std::numeric_limits<double>::infinity(),
                        startIndex,
@@ -112,11 +92,6 @@ OrsaModel::ErrorIndex OrsaModel::bestNFA(const std::vector<ErrorIndex>& e,
       bestIndex = index;
   }
   return bestIndex;
-}
-
-/// Denormalize error, recover real error in pixels.
-double OrsaModel::denormalizeError(double squareError, int side) const {
-  return sqrt(squareError)/(side==0? N1_(0,0): N2_(0,0));
 }
 
 /// Get a (sorted) random sample of size X in [0:n-1]
@@ -173,20 +148,21 @@ static void UniformSample(int sizeSample,
 /// \param precision (input/output) threshold for inlier discrimination.
 /// \param model The best computed model.
 /// \param bVerbose Display optimization statistics.
-double OrsaModel::orsa(std::vector<int> & vec_inliers,
-                       size_t nIter,
-                       double *precision,
-                       Model *model,
-                       bool bVerbose) const {
+double Orsa::run(std::vector<int> & vec_inliers,
+                 size_t nIter,
+                 double *precision,
+                 Model *model,
+                 bool bVerbose) const {
   vec_inliers.clear();
 
-  const int sizeSample = SizeSample();
-  const int nData = x1_.ncol();
+  const int sizeSample = estimator_->SizeSample();
+  const int nData = estimator_->NbData();
   if(nData <= sizeSample)
     return std::numeric_limits<double>::infinity();
 
+  const double normFactor = estimator_->NormalizationFactor(1);
   const double maxThreshold = (precision && *precision>0)?
-    *precision * *precision *N2_(0,0)*N2_(0,0): // Square max error
+    *precision * *precision *normFactor*normFactor: // Square max error
     std::numeric_limits<double>::infinity();
 
   std::vector<ErrorIndex> vec_residuals(nData); // [residual,index]
@@ -198,7 +174,7 @@ double OrsaModel::orsa(std::vector<int> & vec_inliers,
     vec_index[i] = i;
 
   // Precompute log combi
-  double loge0 = log10((double)NbModels() * (nData-sizeSample));
+  double loge0 = log10((double)estimator_->NbModels() * (nData-sizeSample));
   std::vector<float> vec_logc_n, vec_logc_k;
   makelogcombi_n(nData, vec_logc_n);
   makelogcombi_k(sizeSample,nData, vec_logc_k);
@@ -217,7 +193,7 @@ double OrsaModel::orsa(std::vector<int> & vec_inliers,
     UniformSample(sizeSample, vec_index, &vec_sample); // Get random sample
 
     std::vector<Model> vec_models; // Up to max_models solutions
-    Fit(vec_sample, &vec_models);
+    estimator_->Fit(vec_sample, &vec_models);
 
     // Evaluate models
     bool better=false;
@@ -227,7 +203,7 @@ double OrsaModel::orsa(std::vector<int> & vec_inliers,
       for (int i = 0; i < nData; ++i)
       {
         int s;
-        double error = Error(vec_models[k], i, &s);
+        double error = estimator_->Error(vec_models[k], i, &s);
         vec_residuals[i] = ErrorIndex(error, i, s);
       }
       std::sort(vec_residuals.begin(), vec_residuals.end());
@@ -247,9 +223,10 @@ double OrsaModel::orsa(std::vector<int> & vec_inliers,
         if(best.error<0 && model) *model = vec_models[k];
         if(bVerbose)
         {
+          double err = estimator_->denormalizeError(errorMax, side);
           std::cout << "  nfa=" << minNFA
                     << " inliers=" << vec_inliers.size()
-                    << " precision=" << denormalizeError(errorMax, side)
+                    << " precision=" << err
                     << " im" << side+1
                     << " (iter=" << iter;
           if(best.error<0) {
@@ -286,34 +263,34 @@ double OrsaModel::orsa(std::vector<int> & vec_inliers,
                            errorMax, side);
 
   if(precision)
-    *precision = denormalizeError(errorMax, side);
+    *precision = estimator_->denormalizeError(errorMax, side);
   if(model && !vec_inliers.empty())
-    Unnormalize(model);
+    estimator_->Unnormalize(model);
   return minNFA;
 }
 
 /// Refine the model on all the inliers with the "a contrario" model
 /// The model is refined while the NFA threshold is not stable.
-void OrsaModel::refineUntilConvergence(const std::vector<float> & vec_logc_n,
-                                       const std::vector<float> & vec_logc_k,
-                                       double loge0,
-                                       double maxThreshold,
-                                       double minNFA,
-                                       Model *model,
-                                       bool bVerbose,
-                                       std::vector<int> & vec_inliers,
-                                       double & errorMax,
-                                       int & side) const
+void Orsa::refineUntilConvergence(const std::vector<float> & vec_logc_n,
+                                  const std::vector<float> & vec_logc_k,
+                                  double loge0,
+                                  double maxThreshold,
+                                  double minNFA,
+                                  ModelEstimator::Model *model,
+                                  bool bVerbose,
+                                  std::vector<int> & vec_inliers,
+                                  double & errorMax,
+                                  int & side) const
 {
-  std::cout << "\n\n OrsaModel::refineUntilConvergence(...)\n" << std::endl;
-  const int nData = x1_.ncol();
+  std::cout << "\n\n Orsa::refineUntilConvergence(...)\n" << std::endl;
+  const int nData = estimator_->NbData();
   std::vector<ErrorIndex> vec_residuals(nData); // [residual,index]
 
   bool bContinue = true;
   int iter = 0;
   do{
-    std::vector<Model> vec_models; // Up to max_models solutions
-    Fit(vec_inliers, &vec_models);
+    std::vector<ModelEstimator::Model> vec_models;
+    estimator_->Fit(vec_inliers, &vec_models);
 
     // Evaluate models
     for (size_t k = 0; k < vec_models.size(); ++k)
@@ -321,7 +298,7 @@ void OrsaModel::refineUntilConvergence(const std::vector<float> & vec_logc_n,
       // Residuals computation and ordering
       for (int i = 0; i < nData; ++i)
       {
-        double error = Error(vec_models[k], i);
+        double error = estimator_->Error(vec_models[k], i);
         vec_residuals[i] = ErrorIndex(error, i);
       }
       std::sort(vec_residuals.begin(), vec_residuals.end());
@@ -344,7 +321,7 @@ void OrsaModel::refineUntilConvergence(const std::vector<float> & vec_logc_n,
         {
           std::cout << "  nfa=" << minNFA
             << " inliers=" << vec_inliers.size()
-            << " precision=" << denormalizeError(errorMax, side)
+            << " precision=" << estimator_->denormalizeError(errorMax, side)
             << " (iter=" << iter << ")\n";
         }
       }
@@ -361,13 +338,13 @@ void OrsaModel::refineUntilConvergence(const std::vector<float> & vec_logc_n,
 }
 
 /// Toggle iterative refinement NFA/RMSE.
-void OrsaModel::setRefineUntilConvergence(bool value)
+void Orsa::setRefineUntilConvergence(bool value)
 {
   bConvergence = value;
 }
 
 /// Iterative refinement NFA/RMSE.
-bool OrsaModel::getRefineUntilConvergence() const
+bool Orsa::getRefineUntilConvergence() const
 {
   return bConvergence;
 }

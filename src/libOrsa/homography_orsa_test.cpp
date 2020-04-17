@@ -19,9 +19,8 @@
 // IN THE SOFTWARE.
 
 #include <iostream>
-#include <vector>
 #include "homography_model.hpp"
-#include "libNumerics/matrix.h"
+#include "orsa.hpp"
 #include "CppUnitLite/TestHarness.h"
 
 #define EXPECT_MATRIX_NEAR(a, b, tolerance) \
@@ -63,7 +62,7 @@ TEST(RobustHomographyEstimation, ORSA) {
     double points[] = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4,   5,
                         0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2,   5};
     x1.read(points);
-    
+
     x2 = x1;
     for (int i = 0; i < n; ++i) {
       x2(0, i) += i + 2; // Multiple horizontal disparities.
@@ -77,17 +76,21 @@ TEST(RobustHomographyEstimation, ORSA) {
     double matGTd[] = { 4, 1, 2,  0, 1, 0,  0, 0, 1};
     matGT.read(matGTd);
   }
-  
-   
-  // Robust homography solving :
+
+  // Robust homography solving:
   {
     orsa::HomographyModel kernel(x1, 6, 6, x2, 6, 6);
-    
+    double N1 = kernel.NormalizationFactor(0);
+    double N2 = kernel.NormalizationFactor(1);
+    double alpha0Left  = M_PI/(6*(double)6) /(N1*N1);
+    double alpha0Right = M_PI/(6*(double)6) /(N2*N2);
+    orsa::Orsa orsa(&kernel, alpha0Left, alpha0Right);
+
     std::vector<int> vec_inliers;
     Mat homographyMat(3,3);
 
-    kernel.orsa(vec_inliers, 100, NULL, &homographyMat, true);
-    
+    orsa.run(vec_inliers, 100, NULL, &homographyMat, true);
+
     // Assert we found 15 inliers
     CHECK(vec_inliers.size() == 15);
 

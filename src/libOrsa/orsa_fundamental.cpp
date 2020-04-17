@@ -4,6 +4,8 @@
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
  * Copyright (c) 2011-2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2016,2020 Pascal Monasse
+ * Copyright (c) 2011-2016 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +24,7 @@
 
 #include "orsa_fundamental.hpp"
 #include "fundamental_model.hpp"
+#include "orsa.hpp"
 
 #include <iostream>
 #include <utility>
@@ -88,8 +91,16 @@ bool orsa_fundamental(const std::vector<Match>& vec_matchings,
 
   FundamentalModel model(xA, w1, h1, xB, w2, h2);
   //model.setConvergenceCheck(true);
-
-  if(model.orsa(vec_inliers, nbIter, &precision, &F, true)>0.0)
+  double D, A; // Diameter and area of image
+  D = sqrt(w1*(double)w1 + h1*(double)h1);
+  A = w1*(double)h1;
+  double alpha0Left  = 2.0*D/A /model.NormalizationFactor(0);
+  D = sqrt(w2*(double)w2 + h2*(double)h2);
+  A = w2*(double)h2;
+  double alpha0Right = 2.0*D/A /model.NormalizationFactor(1);
+  Orsa orsa(&model, alpha0Left, alpha0Right);
+  
+  if(orsa.run(vec_inliers, nbIter, &precision, &F, true)>0.0)
     return false;
   std::pair<double,double> err; // (RMSE,max)
   std::cout << "Before refinement: ";
