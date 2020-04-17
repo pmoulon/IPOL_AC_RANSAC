@@ -22,7 +22,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "libOrsa/orsa.hpp"
+#include "orsa.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -157,7 +157,7 @@ static void UniformSample(int sizeSample,
 double Orsa::run(std::vector<int> & vec_inliers,
                  size_t nIter,
                  double *precision,
-                 Model *model,
+                 ModelEstimator::Model *model,
                  bool bVerbose) const {
   vec_inliers.clear();
 
@@ -198,7 +198,7 @@ double Orsa::run(std::vector<int> & vec_inliers,
   for (size_t iter=0; iter < nIter; iter++) {
     UniformSample(sizeSample, vec_index, &vec_sample); // Get random sample
 
-    std::vector<Model> vec_models; // Up to max_models solutions
+    std::vector<ModelEstimator::Model> vec_models;
     estimator_->Fit(vec_sample, &vec_models);
 
     // Evaluate models

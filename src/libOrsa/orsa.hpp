@@ -24,7 +24,6 @@
 #ifndef ORSA_H
 #define ORSA_H
 
-#include <vector>
 #include "model_estimator.hpp"
 
 namespace orsa {
@@ -32,10 +31,6 @@ namespace orsa {
 /// Model estimation with ORSA algorithm.
 class Orsa {
  public:
-  typedef libNumerics::vector<double> Vec;
-  typedef libNumerics::matrix<double> Mat;
-  typedef Mat Model;
-
   /// Constructor
   Orsa(const ModelEstimator* estimator, double alpha0Left, double alpha0Right);
 
