@@ -35,7 +35,7 @@ namespace orsa {
 /// reliable. This is used in FundamentalModel::checkF.
 static const double MIN_PRODUCT_NORMS=1e-5;
 
-/// Constructor, computing logalpha0_
+/// Constructor.
 FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
                                    const Mat &x2, int w2, int h2,
                                    bool symError)

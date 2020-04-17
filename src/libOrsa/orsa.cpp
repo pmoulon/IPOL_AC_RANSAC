@@ -37,8 +37,14 @@ namespace orsa {
 Orsa::Orsa(const ModelEstimator* estimator,
            double alpha0Left, double alpha0Right)
 : estimator_(estimator), bConvergence(false) {
-  logalpha0_[0] = log10(alpha0Left);
-  logalpha0_[1] = log10(alpha0Right);
+  double N1 = estimator->NormalizationFactor(0);
+  double N2 = estimator->NormalizationFactor(1);
+  if(estimator->DistToPoint()) {
+      N1 = N1*N1;
+      N2 = N2*N2;
+  }
+  logalpha0_[0] = log10(alpha0Left /N1);
+  logalpha0_[1] = log10(alpha0Right/N2);
 }
 
 /// logarithm (base 10) of binomial coefficient

@@ -80,10 +80,8 @@ TEST(RobustHomographyEstimation, ORSA) {
   // Robust homography solving:
   {
     orsa::HomographyModel kernel(x1, 6, 6, x2, 6, 6);
-    double N1 = kernel.NormalizationFactor(0);
-    double N2 = kernel.NormalizationFactor(1);
-    double alpha0Left  = M_PI/(6*(double)6) /(N1*N1);
-    double alpha0Right = M_PI/(6*(double)6) /(N2*N2);
+    double alpha0Left  = M_PI/(6*(double)6);
+    double alpha0Right = M_PI/(6*(double)6);
     orsa::Orsa orsa(&kernel, alpha0Left, alpha0Right);
 
     std::vector<int> vec_inliers;

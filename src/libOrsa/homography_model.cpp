@@ -36,7 +36,7 @@ namespace orsa {
 /// Minimal inverse condition value for a valid homography matrix
 static const double ICOND_MIN = 0.1;
 
-/// Constructor, initializing \c logalpha0_
+/// Constructor.
 HomographyModel::HomographyModel(const Mat &x1, int w1, int h1,
                                  const Mat &x2, int w2, int h2,
                                  bool symError)

@@ -82,11 +82,9 @@ bool orsa_homography(const std::vector<Match>& vec_matchings,
   }
 
   HomographyModel model(xA, w1, h1, xB, w2, h2, true);
-  double N1 = model.NormalizationFactor(0);
-  double N2 = model.NormalizationFactor(1);
   //model.setConvergenceCheck(true);
-  double alpha0Left  = M_PI/(w1*(double)h1) /(N1*N1);
-  double alpha0Right = M_PI/(w2*(double)h2) /(N2*N2);
+  double alpha0Left  = M_PI/(w1*(double)h1);
+  double alpha0Right = M_PI/(w2*(double)h2);
 
   Orsa orsa(&model, alpha0Left, alpha0Right);
 

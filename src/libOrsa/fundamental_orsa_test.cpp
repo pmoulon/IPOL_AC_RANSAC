@@ -56,7 +56,7 @@ TEST(Fundamental_Orsa, Test)
   orsa::FundamentalModel model(x1, 5, 5, x2, 5, 5);
   double D = sqrt(5*(double)5 + 5*(double)5); // Diameter
   double A = 5*(double)5; // Area
-  double alpha0  = 2.0*D/A /model.NormalizationFactor(0);
+  double alpha0  = 2.0*D/A;
   orsa::Orsa orsa(&model, alpha0, alpha0);
 
   Mat F(3,3);

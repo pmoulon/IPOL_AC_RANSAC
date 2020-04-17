@@ -26,8 +26,7 @@
 
 namespace orsa {
 
-/// Points are normalized according to image dimensions. Subclass must
-/// initialize logalpha0_ and take account of normalization in doing that.
+/// Points are normalized according to image dimensions.
 /// Matrices \a x1 and \a x2 are 2xn, representing Cartesian coordinates.
 ModelEstimator::ModelEstimator(const Mat &x1, int w1, int h1,
                                const Mat &x2, int w2, int h2)

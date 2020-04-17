@@ -94,12 +94,12 @@ bool orsa_fundamental(const std::vector<Match>& vec_matchings,
   double D, A; // Diameter and area of image
   D = sqrt(w1*(double)w1 + h1*(double)h1);
   A = w1*(double)h1;
-  double alpha0Left  = 2.0*D/A /model.NormalizationFactor(0);
+  double alpha0Left  = 2.0*D/A;
   D = sqrt(w2*(double)w2 + h2*(double)h2);
   A = w2*(double)h2;
-  double alpha0Right = 2.0*D/A /model.NormalizationFactor(1);
+  double alpha0Right = 2.0*D/A;
   Orsa orsa(&model, alpha0Left, alpha0Right);
-  
+
   if(orsa.run(vec_inliers, nbIter, &precision, &F, true)>0.0)
     return false;
   std::pair<double,double> err; // (RMSE,max)
