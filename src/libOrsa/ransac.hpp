@@ -43,6 +43,8 @@ public:
 
 private:
   const ModelEstimator* estimator_;
+  void find_inliers(const ModelEstimator::Model& model,
+                    double precision, std::vector<int>& inliers) const;
 };
 
 }  // namespace orsa

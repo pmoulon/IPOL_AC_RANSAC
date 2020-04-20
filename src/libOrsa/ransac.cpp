@@ -33,6 +33,28 @@ namespace orsa {
 Ransac::Ransac(const ModelEstimator* estimator)
 : estimator_(estimator) {}
 
+/// Find inliers of \a model passed as parameter (within \a precision).
+void Ransac::find_inliers(const ModelEstimator::Model& model,
+                          double precision, std::vector<int>& inliers) const {
+  const int nData = estimator_->NbData();
+  for(int i=0; i<nData; i++)
+    if(estimator_->Error(model, i)<=precision)
+      inliers.push_back(i);
+}
+
+/// Some information output
+void display_info(size_t nInliers, size_t iter, size_t nIterMax,
+                  const std::vector<int>& vec_sample){
+  std::cout << " inliers=" << nInliers
+            << " (iter=" << iter
+            << ",iterMax=" << nIterMax;
+  std::cout << ",sample=" << vec_sample.front();
+  std::vector<int>::const_iterator it=vec_sample.begin();
+  for(++it; it != vec_sample.end(); ++it)
+      std::cout << ',' << *it;
+  std::cout << ")" <<std::endl;
+}
+
 /// Generic implementation of RANSAC
 size_t Ransac::run(std::vector<int> &vec_inliers,
                    double precision,
@@ -61,25 +83,15 @@ size_t Ransac::run(std::vector<int> &vec_inliers,
     estimator_->Fit(vec_sample, &vec_models);
     for (size_t k = 0; k < vec_models.size(); ++k) {
       std::vector<int> inliers;
-      for(int i=0; i<nData; i++)
-        if(estimator_->Error(vec_models[k], i)<=precision)
-          inliers.push_back(i);
+      find_inliers(vec_models[k], precision, inliers);
       if(vec_inliers.size() < inliers.size()) {
         if(model) *model = vec_models[k];
         std::swap(inliers,vec_inliers); // Avoid copy
         float denom = log(1-pow(vec_inliers.size()/(double)nData, sizeSample));
         if(denom<0) // Protect against 1-eps==1
           nIterMax = (size_t)std::min((double)nIterMax,ceil(log1_beta/denom));
-        if(bVerbose) {
-          std::cout << " inliers=" << vec_inliers.size()
-                    << " (iter=" << iter
-                    << ",iterMax=" << nIterMax;
-          std::cout << ",sample=" << vec_sample.front();
-          std::vector<int>::const_iterator it=vec_sample.begin();
-          for(++it; it != vec_sample.end(); ++it)
-            std::cout << ',' << *it;
-          std::cout << ")" <<std::endl;
-        }
+        if(bVerbose)
+          display_info(vec_inliers.size(), iter, nIterMax, vec_sample);
       }
     }
   }
