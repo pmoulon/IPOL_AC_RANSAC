@@ -3,6 +3,8 @@ SET(SRC conditioning.hpp conditioning.cpp
         model_estimator.hpp model_estimator.cpp
         homography_model.hpp homography_model.cpp
         fundamental_model.hpp fundamental_model.cpp
+        sampling.hpp sampling.cpp
+        ransac.hpp ransac.cpp
         orsa.hpp orsa.cpp
         orsa_homography.hpp orsa_homography.cpp
         orsa_fundamental.hpp orsa_fundamental.cpp)
@@ -11,7 +13,7 @@ ADD_LIBRARY(Orsa ${SRC})
 
 IF(UNIX)
     SET_TARGET_PROPERTIES(Orsa PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
 ENDIF(UNIX)
 
 IF(MSVC)

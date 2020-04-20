@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 {
   double precision=0;
   float fSiftRatio=0.6f;
+  double beta=0.95;
   CmdLine cmd;
   Geometry region; region.x0=region.y0=region.x1=region.y1=0;
   cmd.add( make_option('c',region,"cut")
@@ -53,6 +54,8 @@ int main(int argc, char **argv)
            .doc("Read file of matches allMatches.txt, do not use SIFT") );
   cmd.add( make_option('s',fSiftRatio, "sift")
            .doc("SIFT distance ratio of descriptors") );
+  cmd.add( make_option('b',beta,"beta")
+           .doc("Beta iteration adjustment parameter (use RANSAC)") );
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -132,14 +135,26 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  bool bUseRansac = cmd.used('b');
+  if(bUseRansac && !cmd.used('p')) {
+    precision = 1;
+    std::cerr << "No input for RANSAC threshold (option -p)."
+              << " Using " << precision << " pixels" << std::endl;
+  }
+
   const int w1=int(image1Gray.Width()), h1=int(image1Gray.Height());
   const int w2=int(image2Gray.Width()), h2=int(image2Gray.Height());
 
   // Estimation of homography with ORSA
   libNumerics::matrix<double> H(3,3);
   std::vector<int> vec_inliers;
-  bool ok = orsa::orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
-                                  H, vec_inliers);
+  bool ok = false;
+  if(bUseRansac)
+      ok = orsa::ransac_homography(vec_matchings,w1,h1,w2,h2,precision,
+                                   ITER_ORSA, beta, H, vec_inliers);
+  else
+      ok = orsa::orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+                                 H, vec_inliers);
   if(ok) {
     H /= H(2,2);
     std::cout << "H=" << H <<std::endl;

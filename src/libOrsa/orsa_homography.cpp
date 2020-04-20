@@ -3,7 +3,9 @@
  * @brief Homography estimation with ORSA algorithm
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ * Copyright (c) 2011-2016 Lionel Moisan
+ * Copyright (c) 2011-2016,2020 Pascal Monasse
+ * Copyright (c) 2011-2016 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +25,7 @@
 #include "orsa_homography.hpp"
 #include "homography_model.hpp"
 #include "orsa.hpp"
+#include "ransac.hpp"
 #include "libNumerics/homography.h"
 
 #include <iostream>
@@ -49,11 +52,72 @@ static void display_stats(const std::vector<Match>& vec_matchings,
             << sqrt(linf) <<std::endl;
 }
 
+static ModelEstimator* build_model(const std::vector<Match>& vec_matchings,
+                                   int w1, int h1, int w2, int h2) {
+  const int n = static_cast<int>( vec_matchings.size() );
+  libNumerics::matrix<double> xA(2,n), xB(2,n);
+
+  for (int i=0; i < n; ++i)
+  {
+    xA(0,i) = vec_matchings[i].x1;
+    xA(1,i) = vec_matchings[i].y1;
+    xB(0,i) = vec_matchings[i].x2;
+    xB(1,i) = vec_matchings[i].y2;
+  }
+
+  return new HomographyModel(xA, w1, h1, xB, w2, h2, true);
+}
+
+static void refine(ModelEstimator* model,
+                   const std::vector<Match>& vec_matchings,
+                   const std::vector<int>& vec_inliers,
+                   ModelEstimator::Model *M) {
+  std::cout << "Before refinement: ";
+  display_stats(vec_matchings, vec_inliers, *M);
+  if( model->ComputeModel(vec_inliers,M) ) // Re-estimate with all inliers
+  {
+    std::cout << "After  refinement: ";
+    display_stats(vec_matchings, vec_inliers, *M);
+  } else
+    std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
+}
+
 /// Estimate the homography using ORSA method and refinement.
 /// \param[in] vec_matchings List of correspondences.
 /// \param[in] w1,h1 Dimensions of left image.
 /// \param[in] w2,h2 Dimensions of right image.
 /// \param[in] precision Maximum inlier/outlier threshold (in pixels).
+/// \param[in] nbIterMax Maximal number of iterations for RANSAC algorithm.
+/// \param[in] beta Probability of one correct sample (to adjust iterations).
+/// \param[out] H Homography registering left on right image.
+/// \param[out] vec_inliers Index of inliers in \a vec_matchings.
+/// \return The actual number of iterations.
+bool ransac_homography(const std::vector<Match>& vec_matchings,
+                       int w1,int h1, int w2,int h2,
+                       double precision, int nbIterMax, double beta,
+                       libNumerics::matrix<double>& H,
+                       std::vector<int>& vec_inliers)
+{
+  ModelEstimator* model = build_model(vec_matchings,w1,h1,w2,h2);
+  bool ok = (vec_matchings.size() >= static_cast<size_t>(model->SizeSample()));
+  if(! ok)
+    std::cerr << "Error: RANSAC needs " << model->SizeSample()
+              << " matches or more to proceed" <<std::endl;
+  else {
+    Ransac ransac(model);
+    nbIterMax = ransac.run(vec_inliers, precision, nbIterMax, &H, beta, true);
+    std::cout << "Iterations: " << nbIterMax << std::endl;
+    refine(model, vec_matchings, vec_inliers, &H);
+  }
+  delete model;
+  return ok;
+}
+
+/// Estimate the homography using ORSA method and refinement.
+/// \param[in] vec_matchings List of correspondences.
+/// \param[in] w1,h1 Dimensions of left image.
+/// \param[in] w2,h2 Dimensions of right image.
+/// \param[in,out] precision Maximum inlier/outlier threshold (in pixels).
 /// \param[in] nbIter Maximal number of iterations for RANSAC algorithm.
 /// \param[out] H Homography registering left on right image.
 /// \param[out] vec_inliers Index of inliers in \a vec_matchings.
@@ -65,39 +129,21 @@ bool orsa_homography(const std::vector<Match>& vec_matchings,
                      libNumerics::matrix<double>& H,
                      std::vector<int>& vec_inliers)
 {
-  const int n = static_cast<int>( vec_matchings.size() );
-  if(n < 5)
-  {
-      std::cerr << "Error: ORSA needs 5 matches or more to proceed" <<std::endl;
-      return false;
+  ModelEstimator* model = build_model(vec_matchings,w1,h1,w2,h2);
+  bool ok = (vec_matchings.size() > static_cast<size_t>(model->SizeSample()));
+  if(! ok)
+    std::cerr << "Error: ORSA needs " << model->SizeSample()+1
+              << " matches or more to proceed" <<std::endl;
+  else {
+    double alpha0Left  = M_PI/(w1*(double)h1);
+    double alpha0Right = M_PI/(w2*(double)h2);
+    Orsa orsa(model, alpha0Left, alpha0Right);
+    if(orsa.run(vec_inliers, nbIter, &precision, &H, true)>0.0)
+      ok = false;
+    else
+      refine(model, vec_matchings, vec_inliers, &H);
   }
-  libNumerics::matrix<double> xA(2,n), xB(2,n);
-
-  for (int i=0; i < n; ++i)
-  {
-    xA(0,i) = vec_matchings[i].x1;
-    xA(1,i) = vec_matchings[i].y1;
-    xB(0,i) = vec_matchings[i].x2;
-    xB(1,i) = vec_matchings[i].y2;
-  }
-
-  HomographyModel model(xA, w1, h1, xB, w2, h2, true);
-  //model.setConvergenceCheck(true);
-  double alpha0Left  = M_PI/(w1*(double)h1);
-  double alpha0Right = M_PI/(w2*(double)h2);
-
-  Orsa orsa(&model, alpha0Left, alpha0Right);
-
-  if(orsa.run(vec_inliers, nbIter, &precision, &H, true)>0.0)
-    return false;
-  std::cout << "Before refinement: ";
-  display_stats(vec_matchings, vec_inliers, H);
-  if( model.ComputeModel(vec_inliers,&H) ) // Re-estimate with all inliers
-  {
-    std::cout << "After  refinement: ";
-    display_stats(vec_matchings, vec_inliers, H);
-  } else
-    std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
+  delete model;
   return true;
 }
 

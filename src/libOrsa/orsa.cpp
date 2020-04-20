@@ -23,6 +23,7 @@
  */
 
 #include "orsa.hpp"
+#include "sampling.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -98,33 +99,6 @@ Orsa::ErrorIndex Orsa::bestNFA(const std::vector<ErrorIndex>& e,
       bestIndex = index;
   }
   return bestIndex;
-}
-
-/// Get a (sorted) random sample of size X in [0:n-1]
-static void random_sample(std::vector<int> &k, int X, int n)
-{
-  for(int i=0; i<X; i++) {
-    int r = (rand()>>3)%(n-i), j;
-    for(j=0; j<i && r>=k[j]; j++)
-      r++;
-    int j0 = j;
-    for(j=i; j > j0; j--)
-      k[j]=k[j-1];
-    k[j0] = r;
-  }
-}
-
-/// Pick a random sample
-/// \param sizeSample The size of the sample.
-/// \param vec_index  The possible data indices.
-/// \param sample The random sample of sizeSample indices (output).
-static void UniformSample(int sizeSample,
-                          const std::vector<int> &vec_index,
-                          std::vector<int> *sample) {
-  sample->resize(sizeSample);
-  random_sample(*sample, sizeSample, static_cast<int>(vec_index.size()));
-  for(int i = 0; i < sizeSample; ++i)
-    (*sample)[i] = vec_index[ (*sample)[i] ];
 }
 
 /// Generic implementation of 'ORSA':
