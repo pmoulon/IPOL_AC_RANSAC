@@ -56,7 +56,8 @@ CppUnitLite. The simplest usage is through the function
                        std::vector<int>& vec_inliers);
 A lower-level function, just applying ORSA with no refinement:
   HomographyModel model(xA, w1, h1, xB, w2, h2);
-  model.orsa(vec_inliers, 10000, 0, &H);
+  Orsa orsa(&model, M_PI/w1/h1, M_PI/w2/h2);
+  orsa.run(vec_inliers, 10000, 0, &H);
 - Fundamental:
   bool orsa_fundamental(const std::vector<Match>& vec_matchings,
                         int w1,int h1, int w2,int h2,
@@ -65,4 +66,5 @@ A lower-level function, just applying ORSA with no refinement:
                         std::vector<int>& vec_inliers);
 A lower-level function, just applying ORSA with no refinement:
   FundamentalModel model(xA, w1, h1, xB, w2, h2);
-  model.orsa(vec_inliers, 10000, 0, &F);
+  Orsa orsa(&model, 2*hypot(w1,h1)/(w1*h1), 2*hypot(w2,h2)/(w2*h2));
+  orsa.run(vec_inliers, 10000, 0, &F);
