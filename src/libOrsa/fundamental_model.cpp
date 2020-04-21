@@ -38,8 +38,8 @@ static const double MIN_PRODUCT_NORMS=1e-5;
 /// Constructor.
 FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
                                    const Mat &x2, int w2, int h2,
-                                   bool symError)
-: ModelEstimator(x1, w1, h1, x2, w2, h2), symError_(symError) {}
+                                   bool symmetricError)
+: ModelEstimator(x1, w1, h1, x2, w2, h2, symmetricError) {}
 
 /// Unnormalize a given model (from normalized to image space).
 void FundamentalModel::Unnormalize(Model * model) const  {
@@ -111,7 +111,7 @@ double FundamentalModel::Error(const Model &F, int index, int* side) const {
   d = a*xb + b*yb + c;
   double err =  (d*d) / (a*a + b*b);
   // Transfer error in image 1
-  if(symError_) { // ... but only if requested
+  if(symError) { // ... but only if requested
     a = F(0,0) * xb + F(0,1) * yb + F(0,2);
     b = F(1,0) * xb + F(1,1) * yb + F(1,2);
     c = F(2,0) * xb + F(2,1) * yb + F(2,2);

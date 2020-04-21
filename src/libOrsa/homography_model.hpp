@@ -33,7 +33,7 @@ class HomographyModel : public ModelEstimator {
 public:
   HomographyModel(const Mat &x1, int w1, int h1,
                   const Mat &x2, int w2, int h2,
-                  bool symError=false);
+                  bool symmetricError=false);
 
   /// 4 point correspondences required to compute a homography.
   int SizeSample() const { return  4; }
@@ -54,7 +54,6 @@ public:
   void Unnormalize(Model *model) const;
 
 private:
-    bool symError_; ///< Use symmetric error or transfer error in image 2?
     bool IsOrientationPreserving(const std::vector<int> &indices,
                                  const Mat& H) const;
 };

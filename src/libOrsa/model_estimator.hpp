@@ -47,9 +47,16 @@ class ModelEstimator {
   typedef libNumerics::matrix<double> Mat;
   typedef Mat Model;
 
+  /// With true \c symError, the error is the maximum of dist(M(x1),x2) (side 1)
+  /// and dist(x1,M'(x2)) (side 0). M' is the dual model of M (M'=M^-1 for
+  /// homography, M'=M^T for fundamental).
+  /// Return in \a side of method Error (if non-null pointer) the side this
+  /// maximum is reached.
+  bool symError;
+
   /// Constructor
   ModelEstimator(const Mat &x1, int w1, int h1,
-                 const Mat &x2, int w2, int h2);
+                 const Mat &x2, int w2, int h2, bool symmetricError=false);
   virtual ~ModelEstimator() {}
 
   /// Number of data matches.

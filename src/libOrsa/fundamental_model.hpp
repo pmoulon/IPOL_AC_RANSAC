@@ -55,8 +55,6 @@ public:
   /// Unnormalize a given model (from normalized to image space).
   void Unnormalize(Model *model) const;
 private:
-  bool symError_;  ///< Use symmetric error or transfer error in image 2?
-
   void algo7pt(const Mat& A, std::vector<Mat> *Fs) const;
   void algo8pt(const Mat& A, std::vector<Mat> *Fs) const;
   void checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const;

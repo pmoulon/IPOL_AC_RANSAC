@@ -29,8 +29,10 @@ namespace orsa {
 /// Points are normalized according to image dimensions.
 /// Matrices \a x1 and \a x2 are 2xn, representing Cartesian coordinates.
 ModelEstimator::ModelEstimator(const Mat &x1, int w1, int h1,
-                               const Mat &x2, int w2, int h2)
-: x1_(x1.nrow(), x1.ncol()), x2_(x2.nrow(), x2.ncol()), N1_(3,3), N2_(3,3) {
+                               const Mat &x2, int w2, int h2,
+                               bool symmetricError)
+: symError(symmetricError),
+  x1_(x1.nrow(), x1.ncol()), x2_(x2.nrow(), x2.ncol()), N1_(3,3), N2_(3,3) {
   assert(2 == x1_.nrow());
   assert(x1_.nrow() == x2_.nrow());
   assert(x1_.ncol() == x2_.ncol());

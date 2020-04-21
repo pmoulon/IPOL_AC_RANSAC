@@ -39,8 +39,8 @@ static const double ICOND_MIN = 0.1;
 /// Constructor.
 HomographyModel::HomographyModel(const Mat &x1, int w1, int h1,
                                  const Mat &x2, int w2, int h2,
-                                 bool symError)
-: ModelEstimator(x1, w1, h1, x2, w2, h2), symError_(symError) {}
+                                 bool symmetricError)
+: ModelEstimator(x1, w1, h1, x2, w2, h2, symmetricError) {}
 
 /// Unnormalize a given model (from normalized to image space).
 void HomographyModel::Unnormalize(Model *model) const  {
@@ -54,10 +54,10 @@ inline double sqr(double x) {
 
 /// If H is not orientation preserving at the point, the error is infinite.
 /// For this test, it is assumed that det(H)>0.
-/// \param H The homography matrix.
-/// \param index The correspondence index
-/// \param side In which image is the error measured?
-/// \return The square reprojection error.
+/// \param[in] H The homography matrix.
+/// \param[in] index The correspondence index
+/// \param[out] side In which image is the error measured?
+/// \return The square reprojection error (in normalized coordinates).
 double HomographyModel::Error(const Model &H, int index, int* side) const {
   double err = std::numeric_limits<double>::infinity();
   if(side) *side=1;
@@ -70,7 +70,7 @@ double HomographyModel::Error(const Model &H, int index, int* side) const {
     err = sqr(x2_(0,index)-x(0)) + sqr(x2_(1,index)-x(1));
   }
   // Transfer error in image 1
-  if(symError_) { // ... but only if requested
+  if(symError) { // ... but only if requested
     x(0) = x2_(0,index); x(1) = x2_(1,index); x(2) = 1.0;
     x = H.inv() * x;
     if(x(2)>0) {
