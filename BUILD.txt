@@ -57,7 +57,12 @@ Usage: ./demo/demo_orsa_fundamental [options] imgInA imgInB [-p|--prec precision
 - -s,--sift siftRatio: SIFT distance ratio of descriptors (default: 0.6)
 - -r,--read: Read file of matches allMatches.txt, do not compute SIFT points
 - -c, --cut=ARG cut region of imagInA: wxh+x+y = rect [x,x+w] x [y,y+h]
+- -b, --beta=ARG Beta iteration adjustment parameter (use RANSAC) (default:0.95)
 ```
+Usage of '-b' option disables the ORSA algorithm and performs the regular
+RANSAC that maximizes the number of inliers. beta must be within (0,1],
+normally close to 1 (beta=1 means no dynamic iteration adjustment). The inlier
+threshold should then be input with option '-p' (1 pixel if not input).
 
 # EXAMPLE
 Example data are in folder 'data'.

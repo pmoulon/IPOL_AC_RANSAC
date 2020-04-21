@@ -2,8 +2,10 @@
  * @file demo_orsa_homography.cpp
  * @brief Homographic image registration
  * @author Pascal Monasse, Pierre Moulon
- * 
- * Copyright (c) 2011-2018 Pascal Monasse, Pierre Moulon
+ *
+ * Copyright (c) 2011-2018 Lionel Moisan
+ * Copyright (c) 2011-2018,2020 Pascal Monasse
+ * Copyright (c) 2011-2018 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -139,7 +141,7 @@ int main(int argc, char **argv)
   if(bUseRansac && !cmd.used('p')) {
     precision = 1;
     std::cerr << "No input for RANSAC threshold (option -p)."
-              << " Using " << precision << " pixels" << std::endl;
+              << " Using " << precision << " pixel" << std::endl;
   }
 
   const int w1=int(image1Gray.Width()), h1=int(image1Gray.Height());
@@ -150,10 +152,10 @@ int main(int argc, char **argv)
   std::vector<int> vec_inliers;
   bool ok = false;
   if(bUseRansac)
-      ok = orsa::ransac_homography(vec_matchings,w1,h1,w2,h2,precision,
-                                   ITER_ORSA, beta, H, vec_inliers);
+    ok = orsa::ransac_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+                                 beta, H, vec_inliers);
   else
-      ok = orsa::orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+    ok = orsa::  orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
                                  H, vec_inliers);
   if(ok) {
     H /= H(2,2);

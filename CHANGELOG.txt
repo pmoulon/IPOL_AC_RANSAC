@@ -1,12 +1,16 @@
-<<<<<<< HEAD
-1.0 (2016-04-28)
-=======
+2020-04-06:
+- Upgrade third party libraries.
+- Separate model estimator/estimation procedure.
+- Introduction of regular RANSAC with dynamic iteration adjustment.
+
+2018-05-12 (v1.2):
+- Merge homography and fundamental in one library.
+
 2016-04-22:
->>>>>>> master
 - Upgrade third party libraries.
 - Use sift_anatomy from IPOL.
 - Make libOrsa stand-alone and easy to reuse.
 
-2013-05-22:
+2013-05-22 (v1.1):
 - Restore default SIFT parameters.
 - Avoid exact 0 residual in the NFA computation (fix for identity transformation like Im1==Im2).

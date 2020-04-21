@@ -22,6 +22,7 @@ random sampling procedure.
 
 - Reviewed files in IPOL:
 src/libOrsa/libNumerics/cubicRoots.h
+src/libOrsa/sampling.{hpp,cpp}
 src/libOrsa/model_estimator.{hpp,cpp}
 src/libOrsa/homography_model.{hpp,cpp}
 src/libOrsa/fundamental_model.{hpp.cpp}

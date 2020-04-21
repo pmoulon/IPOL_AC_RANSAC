@@ -30,12 +30,17 @@
 #include <vector>
 
 namespace orsa {
-/// ORSA fundamental matrix estimation.
-bool orsa_fundamental(const std::vector<Match>& vec_matchings,
-                      int w1,int h1, int w2,int h2,
-                      double precision, int nbIter,
-                      libNumerics::matrix<double>& F,
-                      std::vector<int>& vec_inliers);
+bool ransac_fundamental(const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIter, double beta,
+                        libNumerics::matrix<double>& H,
+                        std::vector<int>& vec_inliers);
+
+bool orsa_fundamental  (const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIter,
+                        libNumerics::matrix<double>& F,
+                        std::vector<int>& vec_inliers);
 }
 
 #endif

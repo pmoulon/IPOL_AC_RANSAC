@@ -2,8 +2,10 @@
  * @file demo_orsa_fundamental.cpp
  * @brief Fundamental matrix estimation with ORSA algorithm
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
- * 
- * Copyright (c) 2011-2018 Lionel Moisan, Pascal Monasse, Pierre Moulon
+ *
+ * Copyright (c) 2011-2018 Lionel Moisan
+ * Copyright (c) 2011-2018,2020 Pascal Monasse
+ * Copyright (c) 2011-2018 Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +41,7 @@ int main(int argc, char **argv)
 {
   double precision=0;
   float fSiftRatio=0.6f;
+  double beta=0.95;
   CmdLine cmd;
   cmd.add( make_option('p',precision, "prec")
            .doc("max precision (in pixels) of registration (0=arbitrary)") );
@@ -46,6 +49,8 @@ int main(int argc, char **argv)
            .doc("SIFT distance ratio of descriptors") );
   cmd.add( make_switch('r', "read")
            .doc("Read file of matches allMatches.txt, do not use SIFT"));
+  cmd.add( make_option('b',beta,"beta")
+           .doc("Beta iteration adjustment parameter (use RANSAC)") );
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -99,13 +104,25 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  bool bUseRansac = cmd.used('b');
+  if(bUseRansac && !cmd.used('p')) {
+    precision = 1;
+    std::cerr << "No input for RANSAC threshold (option -p)."
+              << " Using " << precision << " pixel" << std::endl;
+  }
+
   // Estimation of fundamental matrix with ORSA
   libNumerics::matrix<double> F(3,3);
   std::vector<int> vec_inliers;
   int w1 = image1Gray.Width(), h1 = image1Gray.Height();
   int w2 = image2Gray.Width(), h2 = image2Gray.Height();
-  bool ok = orsa::orsa_fundamental(matchings, w1,h1,w2,h2, precision, ITER_ORSA,
-                                   F, vec_inliers);
+  bool ok = false;
+  if(bUseRansac)
+    ok = orsa::ransac_fundamental(matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+                                  beta, F, vec_inliers);
+  else
+    ok = orsa::  orsa_fundamental(matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+                                  F, vec_inliers);
   if(ok)
     std::cout << "F=" << F <<std::endl;
 

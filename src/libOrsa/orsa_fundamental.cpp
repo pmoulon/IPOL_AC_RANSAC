@@ -25,6 +25,7 @@
 #include "orsa_fundamental.hpp"
 #include "fundamental_model.hpp"
 #include "orsa.hpp"
+#include "ransac.hpp"
 
 #include <iostream>
 #include <utility>
@@ -56,13 +57,80 @@ std::pair<double,double> display_stats(const std::vector<Match>& match,
   return err;
 }
 
+static ModelEstimator* build_model(const std::vector<Match>& vec_matchings,
+                                   int w1, int h1, int w2, int h2) {
+  const int n = static_cast<int>( vec_matchings.size() );
+  libNumerics::matrix<double> xA(2,n), xB(2,n);
+
+  for (int i=0; i < n; ++i)
+  {
+    xA(0,i) = vec_matchings[i].x1;
+    xA(1,i) = vec_matchings[i].y1;
+    xB(0,i) = vec_matchings[i].x2;
+    xB(1,i) = vec_matchings[i].y2;
+  }
+
+  return new FundamentalModel(xA, w1, h1, xB, w2, h2, true);
+}
+
+static void refine(ModelEstimator* model,
+                   const std::vector<Match>& vec_matchings,
+                   const std::vector<int>& vec_inliers,
+                   ModelEstimator::Model *M) {
+  std::cout << "Before refinement: ";
+  std::pair<double,double> err = display_stats(vec_matchings, vec_inliers, *M);
+  ModelEstimator::Model M2(3,3);
+  if( model->ComputeModel(vec_inliers,&M2) ) // Re-estimate with all inliers
+  {
+    std::cout << "After  refinement: ";
+    double maxBefore = err.second;
+    if(display_stats(vec_matchings, vec_inliers, M2).first <= maxBefore)
+      *M = M2;
+    else
+      std::cerr << "Warning: error after refinement is too large, thus ignored"
+                <<std::endl;
+  } else
+    std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
+}
+
+/// Estimate the fundamental matrix using regular RANSAC and refinement.
+/// \param[in] vec_matchings List of correspondences.
+/// \param[in] w1,h1 Dimensions of left image.
+/// \param[in] w2,h2 Dimensions of right image.
+/// \param[in] precision Maximum inlier/outlier threshold (in pixels).
+/// \param[in] nbIterMax Maximal number of iterations for RANSAC algorithm.
+/// \param[in] beta Probability of one correct sample (to adjust iterations).
+/// \param[out] H Homography registering left on right image.
+/// \param[out] vec_inliers Index of inliers in \a vec_matchings.
+/// \return true if at least one viable sample (ie, producing a model) is found.
+bool ransac_fundamental(const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIterMax, double beta,
+                        libNumerics::matrix<double>& H,
+                        std::vector<int>& vec_inliers)
+{
+  ModelEstimator* model = build_model(vec_matchings,w1,h1,w2,h2);
+  bool ok = (vec_matchings.size() >= static_cast<size_t>(model->SizeSample()));
+  if(! ok)
+    std::cerr << "Error: RANSAC needs " << model->SizeSample()
+              << " matches or more to proceed" <<std::endl;
+  else {
+    Ransac ransac(model);
+    nbIterMax = ransac.run(vec_inliers, precision, nbIterMax, &H, beta, true);
+    std::cout << "Iterations: " << nbIterMax << std::endl;
+    refine(model, vec_matchings, vec_inliers, &H);
+  }
+  delete model;
+  return ok;
+}
+
 /// Estimate the fundamental matrix using ORSA method and refinement.
 /// If the mean error after refinement exceeds the max error of ORSA result,
 /// the refinement is not applied.
 /// \param[in] vec_matchings List of correspondences.
 /// \param[in] w1,h1 Dimensions of left image.
 /// \param[in] w2,h2 Dimensions of right image.
-/// \param[in] precision Maximum inlier/outlier threshold (in pixels).
+/// \param[in,out] precision Maximum inlier/outlier threshold (in pixels).
 /// \param[in] nbIter Maximal number of iterations for RANSAC algorithm.
 /// \param[out] F Fundamental matrix between left and right image.
 /// \param[out] vec_inliers Index of inliers in \a vec_matchings.
@@ -74,49 +142,26 @@ bool orsa_fundamental(const std::vector<Match>& vec_matchings,
                       matrix<double>& F,
                       std::vector<int>& vec_inliers)
 {
-  const int n = static_cast<int>( vec_matchings.size() );
-  if(n < 7)
-  {
-    std::cerr << "Error: ORSA needs 7 matches or more to proceed" <<std::endl;
-    return false;
-  }
-  matrix<double> xA(2,n), xB(2,n);
-  for (int i=0; i < n; ++i)
-  {
-    xA(0,i) = vec_matchings[i].x1;
-    xA(1,i) = vec_matchings[i].y1;
-    xB(0,i) = vec_matchings[i].x2;
-    xB(1,i) = vec_matchings[i].y2;
-  }
-
-  FundamentalModel model(xA, w1, h1, xB, w2, h2);
-  //model.setConvergenceCheck(true);
-  double D, A; // Diameter and area of image
-  D = sqrt(w1*(double)w1 + h1*(double)h1);
-  A = w1*(double)h1;
-  double alpha0Left  = 2.0*D/A;
-  D = sqrt(w2*(double)w2 + h2*(double)h2);
-  A = w2*(double)h2;
-  double alpha0Right = 2.0*D/A;
-  Orsa orsa(&model, alpha0Left, alpha0Right);
-
-  if(orsa.run(vec_inliers, nbIter, &precision, &F, true)>0.0)
-    return false;
-  std::pair<double,double> err; // (RMSE,max)
-  std::cout << "Before refinement: ";
-  err = display_stats(vec_matchings, vec_inliers, F);
-  matrix<double> F2(3,3);
-  if( model.ComputeModel(vec_inliers,&F2) ) // Re-estimate with all inliers
-  {
-    std::cout << "After  refinement: ";
-    double maxBefore = err.second;
-    if(display_stats(vec_matchings, vec_inliers, F2).first <= maxBefore)
-      F = F2;
+  ModelEstimator* model = build_model(vec_matchings,w1,h1,w2,h2);
+  bool ok = (vec_matchings.size() > static_cast<size_t>(model->SizeSample()));
+  if(! ok)
+    std::cerr << "Error: ORSA needs " << model->SizeSample()+1
+              << " matches or more to proceed" <<std::endl;
+  else {
+    double D, A; // Diameter and area of image
+    D = sqrt(w1*(double)w1 + h1*(double)h1);
+    A = w1*(double)h1;
+    double alpha0Left  = 2.0*D/A;
+    D = sqrt(w2*(double)w2 + h2*(double)h2);
+    A = w2*(double)h2;
+    double alpha0Right = 2.0*D/A;
+    Orsa orsa(model, alpha0Left, alpha0Right);
+    if(orsa.run(vec_inliers, nbIter, &precision, &F, true)>0.0)
+      ok = false;
     else
-      std::cerr << "Warning: error after refinement is too large, thus ignored"
-                <<std::endl;
-  } else
-    std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
+      refine(model, vec_matchings, vec_inliers, &F);
+  }
+  delete model;
   return true;
 }
 

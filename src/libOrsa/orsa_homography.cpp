@@ -82,7 +82,7 @@ static void refine(ModelEstimator* model,
     std::cerr << "Warning: error in refinement, result is suspect" <<std::endl;
 }
 
-/// Estimate the homography using ORSA method and refinement.
+/// Estimate the homography using regular RANSAC and refinement.
 /// \param[in] vec_matchings List of correspondences.
 /// \param[in] w1,h1 Dimensions of left image.
 /// \param[in] w2,h2 Dimensions of right image.
@@ -91,7 +91,7 @@ static void refine(ModelEstimator* model,
 /// \param[in] beta Probability of one correct sample (to adjust iterations).
 /// \param[out] H Homography registering left on right image.
 /// \param[out] vec_inliers Index of inliers in \a vec_matchings.
-/// \return The actual number of iterations.
+/// \return true if at least one viable sample (ie, producing a model) is found.
 bool ransac_homography(const std::vector<Match>& vec_matchings,
                        int w1,int h1, int w2,int h2,
                        double precision, int nbIterMax, double beta,
