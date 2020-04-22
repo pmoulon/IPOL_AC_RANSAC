@@ -109,7 +109,6 @@ void matching(struct sift_keypoints *k1,
     compute_keypoints_distance(dist, k1, k2);
     find_the_two_nearest_keys(dist, n1, n2, indexA, indexB, distA, distB);
 
-    int j = 0;
     for(int i = 0; i < n1; i++){
         float val;
         val = (flag == 1 ? distA[i]/distB[i] : distA[i]);
@@ -123,7 +122,19 @@ void matching(struct sift_keypoints *k1,
             sift_add_keypoint_to_list(k, out_k2A);
             k = sift_malloc_keypoint_from_model_and_copy(k2->list[iB]);
             sift_add_keypoint_to_list(k, out_k2B);
-            j++;
+            // If thresh>1, we add points for which distB < thresh*distA
+            if (flag == 1 && val*thresh > 1){
+                float maxDist = thresh*distA[i];
+                for (int j = 0; j < n2; j++)
+                    if (dist[n2*i+j] < maxDist && j != iA) {
+                        k=sift_malloc_keypoint_from_model_and_copy(k1->list[i]);
+                        sift_add_keypoint_to_list(k, out_k1);
+                        k=sift_malloc_keypoint_from_model_and_copy(k2->list[j]);
+                        sift_add_keypoint_to_list(k, out_k2A);
+                        k=sift_malloc_keypoint_from_model_and_copy(k2->list[j]);
+                        sift_add_keypoint_to_list(k, out_k2B);
+                    }
+            }
         }
     }
 

@@ -5,7 +5,8 @@ This is a summary of the changes with respect to the original sift_anatomy:
 - fix ambiguous calls to log(int), pow(double,float), etc.
 - define xmalloc and xrealloc (lib_util) as templates (avoids having to cast the result from void*)
 4. add a CMakeLists.txt
+5. Enhance with SIFT match when ratio>=1. It means all points in second image at distance < ratio*d (d is best match distance) are also matches. Hence, with ratio=1, all points of first image have one match. 
 
-Still multiple warnings with Visual C++ with silent casts double/float/int.
+Still multiple warnings with Visual C++ due to silent casts double/float/int.
 
-Pascal Monasse (monasse@imagine.enpc.fr), April 2016
+Pascal Monasse (pascal.monasse@enpc.fr), April 2020
