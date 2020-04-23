@@ -58,20 +58,23 @@ void FundamentalModel::Unnormalize(Model * model) const  {
 ///  matrix.
 ///
 /// Do not resize the matrix A, assumed to have the appropriate size already.
-static void EncodeEpipolarEquation(const ModelEstimator::Mat &x1,
-                                   const ModelEstimator::Mat &x2,
-                                   const std::vector<int> &indices,
-                                   ModelEstimator::Mat *A) {
+void FundamentalModel::EpipolarEquation(const std::vector<int> &indices,
+                                        ModelEstimator::Mat *A) const {
   for (size_t i = 0; i < indices.size(); ++i) {
     int j = indices[i];
-    (*A)(i, 0) = x1(0,j) * x2(0,j);  // 0 represents x coords,
-    (*A)(i, 1) = x1(0,j) * x2(1,j);  // 1 represents y coords.
-    (*A)(i, 2) = x1(0,j);
-    (*A)(i, 3) = x1(1,j) * x2(0,j);
-    (*A)(i, 4) = x1(1,j) * x2(1,j);
-    (*A)(i, 5) = x1(1,j);
-    (*A)(i, 6) = x2(0,j);
-    (*A)(i, 7) = x2(1,j);
+    libNumerics::vector<double> x1(3), x2(3);
+    x1(0)=x1_(0,j); x1(1)=x1_(1,j); x1(2)=1;
+    x2(0)=x2_(0,j); x2(1)=x2_(1,j); x2(2)=1;
+    x1 = N1_*x1;
+    x2 = N2_*x2;
+    (*A)(i, 0) = x1(0) * x2(0);  // 0 represents x coords,
+    (*A)(i, 1) = x1(0) * x2(1);  // 1 represents y coords.
+    (*A)(i, 2) = x1(0);
+    (*A)(i, 3) = x1(1) * x2(0);
+    (*A)(i, 4) = x1(1) * x2(1);
+    (*A)(i, 5) = x1(1);
+    (*A)(i, 6) = x2(0);
+    (*A)(i, 7) = x2(1);
     (*A)(i, 8) = 1.0;
   }
 }
@@ -85,7 +88,7 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
 
   // Set up the homogeneous system Af = 0 from the equations x'T*F*x = 0.
   Mat A(indices.size(), 9);
-  EncodeEpipolarEquation(x1_, x2_, indices, &A);
+  EpipolarEquation(indices, &A);
 
   if(indices.size() < 8) {
     algo7pt(A, Fs);
@@ -161,8 +164,10 @@ void FundamentalModel::algo7pt(const Mat& A, std::vector<Mat> *Fs) const {
   int num_roots = CubicRoots(P, roots);
 
   // Build fundamental matrix for each solution
-  for (int s = 0; s < num_roots; ++s)
+  for (int s = 0; s < num_roots; ++s) {
     Fs->push_back(F1 + roots[s]*F2);
+    Unnormalize(&Fs->back());
+  }
 }
 
 /// 8-point algorithm.
@@ -178,6 +183,7 @@ void FundamentalModel::algo8pt(const Mat& A, std::vector<Mat> *Fs) const {
   // Force the rank 2 constraint
   libNumerics::matrix<double> F2(3,3);
   libNumerics::SVD::EnforceRank2_3x3(F, &F2);
+  Unnormalize(&F2);
   Fs->push_back(F2);
 }
 
@@ -206,6 +212,8 @@ void FundamentalModel::checkF(const std::vector<int> &indices,
     do {
       int j=*it;
       Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
+      xL = N1_*xL;
+      xR = N2_*xR;
       Vec exL = cross(e,xL);
       Vec FxR = *F * xR;
       double d = dot(exL,FxR);

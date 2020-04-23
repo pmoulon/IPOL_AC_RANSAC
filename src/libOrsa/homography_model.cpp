@@ -57,7 +57,7 @@ inline double sqr(double x) {
 /// \param[in] H The homography matrix.
 /// \param[in] index The correspondence index
 /// \param[out] side In which image is the error measured?
-/// \return The square reprojection error (in normalized coordinates).
+/// \return The square reprojection error.
 double HomographyModel::Error(const Model &H, int index, int* side) const {
   double err = std::numeric_limits<double>::infinity();
   if(side) *side=1;
@@ -91,37 +91,44 @@ void HomographyModel::Fit(const std::vector<int> &indices,
   if(4 > indices.size())
     return;
   const int n = static_cast<int>( indices.size() );
-  libNumerics::matrix<double> A = libNumerics::matrix<double>::zeros(n*2,9);
+  Mat A = Mat::zeros(n*2,9);
   for (int i = 0; i < n; ++i) {
-    int index = indices[i];
-    int j = 2*i;
-    A(j,0) = x1_(0, index);
-    A(j,1) = x1_(1, index);
+    int j = indices[i];
+    libNumerics::vector<double> x1(3), x2(3);
+    x1(0)=x1_(0,j); x1(1)=x1_(1,j); x1(2)=1;
+    x2(0)=x2_(0,j); x2(1)=x2_(1,j); x2(2)=1;
+    x1 = N1_*x1;
+    x2 = N2_*x2;
+    j = 2*i;
+    A(j,0) = x1(0);
+    A(j,1) = x1(1);
     A(j,2) = 1.0;
-    A(j,6) = -x2_(0, index) * x1_(0, index);
-    A(j,7) = -x2_(0, index) * x1_(1, index);
-    A(j,8) = -x2_(0, index);
+    A(j,6) = -x2(0) * x1(0);
+    A(j,7) = -x2(0) * x1(1);
+    A(j,8) = -x2(0);
 
     ++j;
-    A(j,3) = x1_(0, index);
-    A(j,4) = x1_(1, index);
+    A(j,3) = x1(0);
+    A(j,4) = x1(1);
     A(j,5) = 1.0;
-    A(j,6) = -x2_(1, index) * x1_(0, index);
-    A(j,7) = -x2_(1, index) * x1_(1, index);
-    A(j,8) = -x2_(1, index);
+    A(j,6) = -x2(1) * x1(0);
+    A(j,7) = -x2(1) * x1(1);
+    A(j,8) = -x2(1);
   }
 
   libNumerics::vector<double> vecNullspace(9);
   if( libNumerics::SVD::Nullspace(A,&vecNullspace) )
   {
-    libNumerics::matrix<double> M(3,3);
+    Mat M(3,3);
     M.read(vecNullspace);
+    if(libNumerics::SVD::InvCond(M) < ICOND_MIN)
+      return;
+    Unnormalize(&M);
     if(M.det() < 0)
       M = -M;
     M /= M(2,2);
 
-    if(libNumerics::SVD::InvCond(M)>=ICOND_MIN &&
-       IsOrientationPreserving(indices,M) )
+    if(IsOrientationPreserving(indices,M) )
       H->push_back(M);
   }
 }

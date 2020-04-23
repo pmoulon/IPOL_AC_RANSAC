@@ -68,7 +68,6 @@ size_t Ransac::run(std::vector<int> &vec_inliers,
     beta = 1.0;
   }
   double log1_beta = log(1-beta);
-  precision *= estimator_->NormalizationFactor(1);
   precision *= precision;
 
   const int nData = estimator_->NbData();
@@ -95,8 +94,6 @@ size_t Ransac::run(std::vector<int> &vec_inliers,
       }
     }
   }
-  if(model && !vec_inliers.empty())
-    estimator_->Unnormalize(model);
   return iter;
 }
 

@@ -38,14 +38,8 @@ namespace orsa {
 Orsa::Orsa(const ModelEstimator* estimator,
            double alpha0Left, double alpha0Right)
 : estimator_(estimator), bConvergence(false) {
-  double N1 = estimator->NormalizationFactor(0);
-  double N2 = estimator->NormalizationFactor(1);
-  if(estimator->DistToPoint()) {
-      N1 = N1*N1;
-      N2 = N2*N2;
-  }
-  logalpha0_[0] = log10(alpha0Left /N1);
-  logalpha0_[1] = log10(alpha0Right/N2);
+  logalpha0_[0] = log10(alpha0Left );
+  logalpha0_[1] = log10(alpha0Right);
 }
 
 /// logarithm (base 10) of binomial coefficient
@@ -140,9 +134,8 @@ double Orsa::run(std::vector<int> & vec_inliers,
   if(nData <= sizeSample)
     return std::numeric_limits<double>::infinity();
 
-  const double normFactor = estimator_->NormalizationFactor(1);
   const double maxThreshold = (precision && *precision>0)?
-    *precision * *precision *normFactor*normFactor: // Square max error
+    *precision * *precision: // Square max error
     std::numeric_limits<double>::infinity();
 
   std::vector<ErrorIndex> vec_residuals(nData); // [residual,index]
@@ -203,10 +196,9 @@ double Orsa::run(std::vector<int> & vec_inliers,
         if(best.error<0 && model) *model = vec_models[k];
         if(bVerbose)
         {
-          double err = estimator_->denormalizeError(errorMax, side);
           std::cout << "  nfa=" << minNFA
                     << " inliers=" << vec_inliers.size()
-                    << " precision=" << err
+                    << " precision=" << errorMax
                     << " im" << side+1
                     << " (iter=" << iter;
           if(best.error<0) {
@@ -242,10 +234,6 @@ double Orsa::run(std::vector<int> & vec_inliers,
                            maxThreshold, minNFA, model, bVerbose, vec_inliers,
                            errorMax, side);
 
-  if(precision)
-    *precision = estimator_->denormalizeError(errorMax, side);
-  if(model && !vec_inliers.empty())
-    estimator_->Unnormalize(model);
   return minNFA;
 }
 
@@ -301,7 +289,7 @@ void Orsa::refineUntilConvergence(const std::vector<float> & vec_logc_n,
         {
           std::cout << "  nfa=" << minNFA
             << " inliers=" << vec_inliers.size()
-            << " precision=" << estimator_->denormalizeError(errorMax, side)
+            << " precision=" << errorMax
             << " (iter=" << iter << ")\n";
         }
       }

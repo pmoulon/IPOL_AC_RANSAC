@@ -39,8 +39,6 @@ namespace orsa {
 ///        Compute model(s) compatible with indexed correspondences.
 ///   5. Error(const Model &model, size_t index)
 ///        Reprojection square error for indexed correspondence.
-///   6. Unnormalize(Model *model)
-///        Unnormalize a given model (from normalized to image space).
 
 class ModelEstimator {
  public:
@@ -62,13 +60,8 @@ class ModelEstimator {
   /// Number of data matches.
   int NbData() const { return x1_.ncol(); }
 
-  /// Normalization factor of distances in left (side=0) or right image (1).
-  double NormalizationFactor(int side) const {
-    return (side==0)? N1_(0,0): N2_(0,0); }
-
   /// Compute model from points.
-  bool ComputeModel(const std::vector<int> &indices,
-                    Model *model) const;
+  bool ComputeModel(const std::vector<int> &indices, Model *model) const;
 
   /// Minimum number of points required to compute a model.
   /// - homography -> 4
@@ -83,13 +76,14 @@ class ModelEstimator {
   virtual int NbModels() const = 0;
 
   /// Indicate if distance used to distinguish inlier/outlier is to a point
-  /// (true) or a line (false).
+  /// (true) or a line (false). Most regression routines, such as RANSAC, do not
+  /// care about that, bur ORSA needs it.
   /// - homography -> true
   /// - fundamental -> false
   virtual bool DistToPoint() const = 0;
 
   /// Computes the square error of a correspondence wrt \a model.
-  /// \param model The (normalized) model to evaluate.
+  /// \param model The model to evaluate.
   /// \param index The point index stored in the Kernel.
   /// \param[out] side In which image is the error measured?
   virtual double Error(const Model &model, int index, int* side=0) const = 0;
@@ -99,15 +93,6 @@ class ModelEstimator {
   /// \param models  Estimated model(s) from sampled point.
   virtual void Fit(const std::vector<int> &indices,
                    std::vector<Model> *models) const = 0;
-
-  /// Unnormalize a given model.
-  /// \param model The model to unnormalize.
-  virtual void Unnormalize(Model *model) const = 0;
-
-  /// Denormalize a square residual error.
-  /// \param squareError the normalized square residual error.
-  /// \param side (0/1) depending on whether the error is in image 1 or 2.
-  double denormalizeError(double squareError, int side) const;
 
 protected:
   Mat x1_; ///< Points in image 1

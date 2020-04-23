@@ -52,9 +52,9 @@ public:
   /// Square reprojection error for a given point through F.
   double Error(const Model &F, int index, int* side=0) const;
   
-  /// Unnormalize a given model (from normalized to image space).
-  void Unnormalize(Model *model) const;
 private:
+  void Unnormalize(Model *model) const;
+  void EpipolarEquation(const std::vector<int> &indices, Mat *A) const;
   void algo7pt(const Mat& A, std::vector<Mat> *Fs) const;
   void algo8pt(const Mat& A, std::vector<Mat> *Fs) const;
   void checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const;

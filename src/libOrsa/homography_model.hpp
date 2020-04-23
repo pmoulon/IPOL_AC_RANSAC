@@ -50,11 +50,9 @@ public:
   /// Square reprojection error for a given point through the model H.
   double Error(const Model &H, int index, int* side=0) const;
 
-  /// Unnormalize a given model (from normalized to image space).
-  void Unnormalize(Model *model) const;
-
 private:
-    bool IsOrientationPreserving(const std::vector<int> &indices,
+  void Unnormalize(Model *model) const;
+  bool IsOrientationPreserving(const std::vector<int> &indices,
                                  const Mat& H) const;
 };
 
