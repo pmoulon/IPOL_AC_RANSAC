@@ -1,11 +1,9 @@
 /**
- * @file orsa_fundamental.hpp
- * @brief Fundamental matrix estimation with ORSA algorithm.
+ * @file eval_model.hpp
+ * @brief Model estimation with ORSA or RANSAC algorithm
  * @author Lionel Moisan, Pascal Monasse, Pierre Moulon
  * 
- * Copyright (c) 2011-2016 Lionel Moisan
- * Copyright (c) 2011-2016,2020 Pascal Monasse
- * Copyright (c) 2011-2016 Pierre Moulon
+ * Copyright (c) 2011-2016 Lionel Moisan, Pascal Monasse, Pierre Moulon
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,20 +20,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORSA_FUNDAMENTAL_H
-#define ORSA_FUNDAMENTAL_H
+#ifndef EVAL_MODEL_H
+#define EVAL_MODEL_H
 
+#include <vector>
 #include "libNumerics/matrix.h"
 #include "match.hpp"
-#include <vector>
 
 namespace orsa {
-bool ransac_fundamental(const std::vector<Match>& vec_matchings,
+bool ransac_homography (const std::vector<Match>& vec_matchings,
                         int w1,int h1, int w2,int h2,
                         double precision, int nbIter, double beta,
                         libNumerics::matrix<double>& H,
                         std::vector<int>& vec_inliers);
-
+bool orsa_homography   (const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIter,
+                        libNumerics::matrix<double>& H,
+                        std::vector<int>& vec_inliers);
+bool ransac_fundamental(const std::vector<Match>& vec_matchings,
+                        int w1,int h1, int w2,int h2,
+                        double precision, int nbIter, double beta,
+                        libNumerics::matrix<double>& F,
+                        std::vector<int>& vec_inliers);
 bool orsa_fundamental  (const std::vector<Match>& vec_matchings,
                         int w1,int h1, int w2,int h2,
                         double precision, int nbIter,

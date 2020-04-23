@@ -25,7 +25,7 @@
 #include <numeric>
 
 #include "libImage/image_io.hpp"
-#include "libOrsa/orsa_fundamental.hpp"
+#include "libOrsa/eval_model.hpp"
 
 #include "cmdLine.h"
 #include "siftMatch.hpp"

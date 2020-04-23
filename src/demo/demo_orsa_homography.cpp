@@ -30,7 +30,7 @@
 #include "libImage/image_io.hpp"
 #include "libImage/image_crop.hpp"
 
-#include "libOrsa/orsa_homography.hpp"
+#include "libOrsa/eval_model.hpp"
 #include "libOrsa/libNumerics/homography.h"
 
 #include "cmdLine.h"

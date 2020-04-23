@@ -6,8 +6,7 @@ SET(SRC conditioning.hpp conditioning.cpp
         sampling.hpp sampling.cpp
         ransac.hpp ransac.cpp
         orsa.hpp orsa.cpp
-        orsa_homography.hpp orsa_homography.cpp
-        orsa_fundamental.hpp orsa_fundamental.cpp)
+        eval_model.hpp eval_model.cpp)
 
 ADD_LIBRARY(Orsa ${SRC})
 
