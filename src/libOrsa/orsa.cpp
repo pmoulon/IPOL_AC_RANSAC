@@ -198,7 +198,7 @@ double Orsa::run(std::vector<int> & vec_inliers,
         {
           std::cout << "  nfa=" << minNFA
                     << " inliers=" << vec_inliers.size()
-                    << " precision=" << errorMax
+                    << " precision=" << sqrt(errorMax)
                     << " im" << side+1
                     << " (iter=" << iter;
           if(best.error<0) {
