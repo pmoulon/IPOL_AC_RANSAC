@@ -26,8 +26,7 @@ src/libOrsa/sampling.{hpp,cpp}
 src/libOrsa/model_estimator.{hpp,cpp}
 src/libOrsa/homography_model.{hpp,cpp}
 src/libOrsa/fundamental_model.{hpp.cpp}
-src/libOrsa/orsa_homography.{hpp,cpp}
-src/libOrsa/orsa_fundamental.{hpp,cpp}
+src/libOrsa/eval_model.{hpp,cpp}
 src/demo/demo_orsa_homography.cpp
 src/demo/demo_orsa_fundamental.cpp
 src/demo/homography_graphical_output.{hpp,cpp}
@@ -56,7 +55,7 @@ CppUnitLite. The simplest usage is through the function
                        std::vector<int>& vec_inliers);
 A lower-level function, just applying ORSA with no refinement:
   HomographyModel model(xA, w1, h1, xB, w2, h2);
-  Orsa orsa(&model, M_PI/w1/h1, M_PI/w2/h2);
+  Orsa orsa(&model, M_PI/(w1*h1), M_PI/(w2*h2));
   orsa.run(vec_inliers, 10000, 0, &H);
 - Fundamental:
   bool orsa_fundamental(const std::vector<Match>& vec_matchings,
