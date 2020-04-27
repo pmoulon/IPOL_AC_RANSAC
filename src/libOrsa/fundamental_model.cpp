@@ -21,7 +21,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define _USE_MATH_DEFINES //For Windows (M_PI)
 #include "fundamental_model.hpp"
 #include "libNumerics/cubicRoots.h"
 #include "libNumerics/numerics.h"
@@ -90,10 +89,9 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
   Mat A(indices.size(), 9);
   EpipolarEquation(indices, &A);
 
-  if(indices.size() < 8) {
-    algo7pt(A, Fs);
-    checkF(indices, Fs);
-  } else
+  if(indices.size() < 8)
+    algo7pt(A, Fs, indices);
+  else
     algo8pt(A, Fs);
 }
 
@@ -138,7 +136,9 @@ inline double det3(const Vec& v1, const Vec& v2, const Vec& v3){
 /// 7-point algorithm.
 /// \param A Matrix such that f is solution to Af=0
 /// \param Fs Output vector of found F matrices (up to 3)
-void FundamentalModel::algo7pt(const Mat& A, std::vector<Mat> *Fs) const {
+/// \param indices The indices of points used to check coherency of F
+void FundamentalModel::algo7pt(const Mat& A, std::vector<Mat> *Fs,
+                               const std::vector<int>& indices) const {
   // Find two F matrices in the nullspace of A
   Mat F1(3,3), F2(3,3);
   libNumerics::SVD::Nullspace2_Remap33(A,F1,F2);
@@ -165,8 +165,11 @@ void FundamentalModel::algo7pt(const Mat& A, std::vector<Mat> *Fs) const {
 
   // Build fundamental matrix for each solution
   for (int s = 0; s < num_roots; ++s) {
-    Fs->push_back(F1 + roots[s]*F2);
-    Unnormalize(&Fs->back());
+    Mat F = F1 + roots[s]*F2;
+    if(checkF(F, indices)) {
+      Unnormalize(&F);
+      Fs->push_back(F);
+    }
   }
 }
 
@@ -204,32 +207,27 @@ static Vec leftEpipole(const ModelEstimator::Mat& F) {
 }
 
 /// Filter out F matrices that are not possible.
-void FundamentalModel::checkF(const std::vector<int> &indices,
-                              std::vector<Mat> *Fs) const {
-  for(std::vector<Mat>::iterator F=Fs->begin(); F != Fs->end();) {
-    Vec e = leftEpipole(*F);
-    std::vector<int>::const_iterator it=indices.begin();
-    do {
-      int j=*it;
-      Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
-      xL = N1_*xL;
-      xR = N2_*xR;
-      Vec exL = cross(e,xL);
-      Vec FxR = *F * xR;
-      double d = dot(exL,FxR);
-      double t = sqrt(xL.qnorm()*xR.qnorm());
-      if(d<=t*MIN_PRODUCT_NORMS) {
-        if(it==indices.begin() && d<-t*MIN_PRODUCT_NORMS)
-          e = -e;
-        else
-          break;
-      }
-    } while(++it != indices.end());
-    if(it==indices.end())
-      ++F;
-    else
-      F = Fs->erase(F);
-  }
+bool FundamentalModel::checkF(const Mat& F,
+                              const std::vector<int> &indices) const {
+  Vec e = leftEpipole(F);
+  std::vector<int>::const_iterator it=indices.begin();
+  do {
+    int j=*it;
+    Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
+    xL = N1_*xL;
+    xR = N2_*xR;
+    Vec exL = cross(e,xL);
+    Vec FxR = F * xR;
+    double d = dot(exL,FxR);
+    double t = sqrt(xL.qnorm()*xR.qnorm());
+    if(d<=t*MIN_PRODUCT_NORMS) {
+      if(it==indices.begin() && d<-t*MIN_PRODUCT_NORMS)
+        e = -e;
+      else
+        return false;
+    }
+  } while(++it != indices.end());
+  return true;
 }
 
 }  // namespace orsa

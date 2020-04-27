@@ -55,9 +55,10 @@ public:
 private:
   void Unnormalize(Model *model) const;
   void EpipolarEquation(const std::vector<int> &indices, Mat *A) const;
-  void algo7pt(const Mat& A, std::vector<Mat> *Fs) const;
+  void algo7pt(const Mat& A, std::vector<Mat> *Fs,
+               const std::vector<int> &indices) const;
   void algo8pt(const Mat& A, std::vector<Mat> *Fs) const;
-  void checkF(const std::vector<int> &indices, std::vector<Mat> *Fs) const;
+  bool checkF(const Mat &F, const std::vector<int> &indices) const;
 };
 
 }  // namespace orsa
