@@ -34,9 +34,7 @@ namespace orsa {
 /// The equation is \f$det(F_1 + \alpha F_2) = 0\f$.
 class FundamentalModel : public ModelEstimator {
 public:
-  FundamentalModel(const Mat &x1, int w1, int h1,
-                   const Mat &x2, int w2, int h2,
-                   bool symError=false);
+  FundamentalModel(const Mat &x1, const Mat &x2, bool symError=false);
 
   /// 7 points are required to compute a fundamental matrix.
   int SizeSample() const { return  7;}
@@ -53,6 +51,8 @@ public:
   double Error(const Model &F, int index, int* side=0) const;
   
 private:
+  Mat N1_; ///< Normalization for x1_
+  Mat N2_; ///< Normalization for x2_
   void Unnormalize(Model *model) const;
   void EpipolarEquation(const std::vector<int> &indices, Mat *A) const;
   void algo7pt(const Mat& A, std::vector<Mat> *Fs,

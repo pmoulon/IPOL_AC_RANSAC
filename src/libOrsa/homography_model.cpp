@@ -21,10 +21,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "libOrsa/homography_model.hpp"
-#include "libOrsa/conditioning.hpp"
+#include "homography_model.hpp"
+#include "conditioning.hpp"
 #include "libNumerics/numerics.h"
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -36,11 +37,38 @@ namespace orsa {
 /// Minimal inverse condition value for a valid homography matrix
 static const double ICOND_MIN = 0.1;
 
+/// Return min/max/mean of row \a i of matrix \a A in \a m, \a M and \a avg.
+void MinMaxAvgRow(const ModelEstimator::Mat& A, int i,
+                  double& m, double& M, double& avg) {
+  m = M = avg = A(i,0);
+  const int n = A.ncol();
+  for(int j=1; j<n; j++) {
+    double a = A(i,j);
+    if(m > a) m = a;
+    if(M < a) M = a;
+    avg += a;
+  }
+  avg /= static_cast<double>(n);
+}
+
 /// Constructor.
-HomographyModel::HomographyModel(const Mat &x1, int w1, int h1,
-                                 const Mat &x2, int w2, int h2,
-                                 bool symmetricError)
-: ModelEstimator(x1, w1, h1, x2, w2, h2, symmetricError) {}
+HomographyModel::HomographyModel(const Mat &x1, const Mat &x2, bool symError)
+: ModelEstimator(x1, x2, symError), N1_(3,3), N2_(3,3) {
+  double stat[12];
+  MinMaxAvgRow(x1, 0, stat[0], stat[1],  stat[2]);
+  MinMaxAvgRow(x1, 1, stat[3], stat[4],  stat[5]);
+  MinMaxAvgRow(x2, 0, stat[6], stat[7],  stat[8]);
+  MinMaxAvgRow(x2, 1, stat[9], stat[10], stat[11]);
+  // Normalize both images by same factor, as our thresholds for SVD are based
+  // on zoom around 1
+  double w = std::max(stat[1]-stat[0], stat[7] -stat[6]);
+  double h = std::max(stat[4]-stat[3], stat[10]-stat[9]);
+  double dNorm = 1.0 / sqrt( static_cast<double>(w*h) );
+  N1_ = Mat::eye(3); N2_ = Mat::eye(3);
+  N1_(0,0) = N1_(1,1) = N2_(0,0) = N2_(1,1) = dNorm;
+  N1_(0,2) = -stat[2]*dNorm; N1_(1,2) = -stat[5]*dNorm;
+  N2_(0,2) = -stat[8]*dNorm; N2_(1,2) = -stat[11]*dNorm;
+}
 
 /// Unnormalize a given model (from normalized to image space).
 void HomographyModel::Unnormalize(Model *model) const  {

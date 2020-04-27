@@ -42,6 +42,7 @@ int main(int argc, char **argv)
   double precision=0;
   float fSiftRatio=0.6f;
   double beta=0.95;
+  unsigned int seed = (unsigned)time(0); // Use option -t for a reproducible run
   CmdLine cmd;
   cmd.add( make_option('p',precision, "prec")
            .doc("max precision (in pixels) of registration (0=arbitrary)") );
@@ -51,6 +52,8 @@ int main(int argc, char **argv)
            .doc("Read file of matches allMatches.txt, do not use SIFT"));
   cmd.add( make_option('b',beta,"beta")
            .doc("Beta iteration adjustment parameter (use RANSAC)") );
+  cmd.add( make_option('t',seed,"time-seed")
+           .doc("Use value instead of time for random seed (for debug)") );
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -75,7 +78,7 @@ int main(int argc, char **argv)
   }
 
   // Init random seed
-  srand((unsigned int)time(0));
+  srand(seed);
 
   // Read images
   Image<RGBColor> image1, image2;
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
   int w2 = image2Gray.Width(), h2 = image2Gray.Height();
   bool ok = false;
   if(bUseRansac)
-    ok = orsa::ransac_fundamental(matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+    ok = orsa::ransac_fundamental(matchings,precision,ITER_ORSA,
                                   beta, F, vec_inliers);
   else
     ok = orsa::  orsa_fundamental(matchings,w1,h1,w2,h2,precision,ITER_ORSA,

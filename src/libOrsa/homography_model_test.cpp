@@ -74,7 +74,7 @@ TEST(HomographyKernelTest, Fitting) {
         libNumerics::TransformH(H_gt[i], y(0,k), y(1,k) );
     }
 
-    orsa::HomographyModel kernel(x, 10, 10, y, 10, 10);
+    orsa::HomographyModel kernel(x, y);
 
     //-- Fit a model and check re-projection error.
     int samples_[5]={0,1,2,3,4};

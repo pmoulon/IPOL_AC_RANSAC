@@ -46,6 +46,7 @@ int main(int argc, char **argv)
   double precision=0;
   float fSiftRatio=0.6f;
   double beta=0.95;
+  unsigned int seed = (unsigned)time(0); // Use option -t for a reproducible run
   CmdLine cmd;
   Geometry region; region.x0=region.y0=region.x1=region.y1=0;
   cmd.add( make_option('c',region,"cut")
@@ -58,6 +59,8 @@ int main(int argc, char **argv)
            .doc("SIFT distance ratio of descriptors") );
   cmd.add( make_option('b',beta,"beta")
            .doc("Beta iteration adjustment parameter (use RANSAC)") );
+  cmd.add( make_option('t',seed,"time-seed")
+           .doc("Use value instead of time for random seed (for debug)") );
   try {
     cmd.process(argc, argv);
   } catch(const std::string& s) {
@@ -83,8 +86,7 @@ int main(int argc, char **argv)
   }
 
   // Init random seed
-  time_t seed = time(0); // Replace by a fixed value to debug a reproducible run
-  srand((unsigned int)seed);
+  srand(seed);
 
   Image<RGBColor> image1, image2;
   if(! libs::ReadImage(argv[1], &image1))
@@ -152,7 +154,7 @@ int main(int argc, char **argv)
   std::vector<int> vec_inliers;
   bool ok = false;
   if(bUseRansac)
-    ok = orsa::ransac_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,
+    ok = orsa::ransac_homography(vec_matchings,precision,ITER_ORSA,
                                  beta, H, vec_inliers);
   else
     ok = orsa::  orsa_homography(vec_matchings,w1,h1,w2,h2,precision,ITER_ORSA,

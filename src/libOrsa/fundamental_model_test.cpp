@@ -30,13 +30,13 @@ typedef libNumerics::matrix<double> Mat;
 //   2. The condition x'T*F*x = 0 is satisfied to precision.
 //
 bool ExpectFundamentalProperties(const Mat &F,
-                                 const Mat &ptsA, int w1, int h1,
-                                 const Mat &ptsB, int w2, int h2,
+                                 const Mat &ptsA,
+                                 const Mat &ptsB,
                                  double precision) {
   bool bOk = true;
   bOk &= F.det() < precision;
   std::cout << std::endl << F << std::endl;
-  orsa::FundamentalModel model(ptsA, w1, h1, ptsB, w2, h2);
+  orsa::FundamentalModel model(ptsA, ptsB);
   assert(ptsA.ncol() == ptsB.ncol());
   for (int i = 0; i < ptsA.ncol(); ++i) {
     double residual = model.Error(F,i);
@@ -51,10 +51,9 @@ bool ExpectFundamentalProperties(const Mat &F,
 //   2. Check epipolar distance.
 //
 template <class Kernel>
-bool ExpectKernelProperties(const Mat &x1, int w1, int h1,
-                            const Mat &x2, int w2, int h2) {
+bool ExpectKernelProperties(const Mat &x1, const Mat &x2) {
   bool bOk = true;
-  orsa::ModelEstimator* kernel = new Kernel(x1, w1, h1, x2, w2, h2);
+  orsa::ModelEstimator* kernel = new Kernel(x1, x2);
   std::vector<int> samples;
   for (int i = 0; i < x1.ncol(); ++i) {
     samples.push_back(i);
@@ -63,7 +62,7 @@ bool ExpectKernelProperties(const Mat &x1, int w1, int h1,
   kernel->Fit(samples, &vec_F);
   for (size_t i = 0; i  < vec_F.size(); ++i)
   {
-    bOk &= ExpectFundamentalProperties(vec_F[i], x1, w1, h1, x2, w2, h2, 1e-8);
+    bOk &= ExpectFundamentalProperties(vec_F[i], x1, x2, 1e-8);
   }  
   delete kernel;
   return bOk;
@@ -78,7 +77,7 @@ TEST(SevenPointTest, EasyCase) {
                        1, 2, 3, 1, 2, 3, 1};
   x2.read(points2);
   typedef orsa::FundamentalModel Model;
-  CHECK(ExpectKernelProperties<Model>(x1, 3, 3, x2, 3, 3));
+  CHECK(ExpectKernelProperties<Model>(x1, x2));
 }
 
 TEST(SevenPointTest, RealCorrespondences) {
@@ -91,7 +90,7 @@ TEST(SevenPointTest, RealCorrespondences) {
   x2.read(points2);
 
   typedef orsa::FundamentalModel Model;
-  CHECK(ExpectKernelProperties<Model>(x1, 1500, 1800, x2, 2200, 1800));
+  CHECK(ExpectKernelProperties<Model>(x1, x2));
 }
 
 /* ************************************************************************* */

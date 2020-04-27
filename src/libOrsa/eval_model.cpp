@@ -50,8 +50,7 @@ static std::pair<double,double> display_stats(const ModelEstimator& model,
 
 /// Generate a model estimator. Do not forget deletion.
 template <typename Model>
-ModelEstimator* build_model(const std::vector<Match>& vec_matchings,
-                            int w1, int h1, int w2, int h2) {
+ModelEstimator* build_model(const std::vector<Match>& vec_matchings) {
   const int n = static_cast<int>( vec_matchings.size() );
   libNumerics::matrix<double> xA(2,n), xB(2,n);
 
@@ -63,7 +62,7 @@ ModelEstimator* build_model(const std::vector<Match>& vec_matchings,
     xB(1,i) = vec_matchings[i].y2;
   }
 
-  return new Model(xA, w1, h1, xB, w2, h2, true);
+  return new Model(xA, xB, true);
 }
 
 /// Refine model based on all inliers, and display statistics.
@@ -137,8 +136,6 @@ bool generic_orsa(ModelEstimator* model, double alpha0Left, double alpha0Right,
 
 /// Estimate the homography using regular RANSAC and refinement.
 /// \param[in] vec_matchings List of correspondences.
-/// \param[in] w1,h1 Dimensions of left image.
-/// \param[in] w2,h2 Dimensions of right image.
 /// \param[in] precision Maximum inlier/outlier threshold (in pixels).
 /// \param[in] nbIterMax Maximal number of iterations for RANSAC algorithm.
 /// \param[in] beta Probability of one correct sample (to adjust iterations).
@@ -146,12 +143,10 @@ bool generic_orsa(ModelEstimator* model, double alpha0Left, double alpha0Right,
 /// \param[out] vec_inliers Index of inliers in \a vec_matchings.
 /// \return true if at least one viable sample (ie, producing a model) is found.
 bool ransac_homography(const std::vector<Match>& vec_matchings,
-                       int w1,int h1, int w2,int h2,
                        double precision, int nbIterMax, double beta,
                        libNumerics::matrix<double>& H,
                        std::vector<int>& vec_inliers) {
-  ModelEstimator* model = build_model<HomographyModel>(vec_matchings,
-                                                       w1,h1,w2,h2);
+  ModelEstimator* model = build_model<HomographyModel>(vec_matchings);
   bool ok = generic_ransac(model, precision, nbIterMax, beta, H, vec_inliers);
   delete model;
   return ok;
@@ -159,8 +154,6 @@ bool ransac_homography(const std::vector<Match>& vec_matchings,
 
 /// Estimate the fundamental matrix using regular RANSAC and refinement.
 /// \param[in] vec_matchings List of correspondences.
-/// \param[in] w1,h1 Dimensions of left image.
-/// \param[in] w2,h2 Dimensions of right image.
 /// \param[in] precision Maximum inlier/outlier threshold (in pixels).
 /// \param[in] nbIterMax Maximal number of iterations for RANSAC algorithm.
 /// \param[in] beta Probability of one correct sample (to adjust iterations).
@@ -168,12 +161,10 @@ bool ransac_homography(const std::vector<Match>& vec_matchings,
 /// \param[out] vec_inliers Index of inliers in \a vec_matchings.
 /// \return true if at least one viable sample (ie, producing a model) is found.
 bool ransac_fundamental(const std::vector<Match>& vec_matchings,
-                        int w1,int h1, int w2,int h2,
                         double precision, int nbIterMax, double beta,
                         libNumerics::matrix<double>& F,
                         std::vector<int>& vec_inliers) {
-  ModelEstimator* model = build_model<FundamentalModel>(vec_matchings,
-                                                        w1,h1,w2,h2);
+  ModelEstimator* model = build_model<FundamentalModel>(vec_matchings);
   bool ok = generic_ransac(model, precision, nbIterMax, beta, F, vec_inliers);
   delete model;
   return ok;
@@ -194,8 +185,7 @@ bool orsa_homography(const std::vector<Match>& vec_matchings,
                      double precision, int nbIter,
                      libNumerics::matrix<double>& F,
                      std::vector<int>& vec_inliers) {
-  ModelEstimator* model = build_model<HomographyModel>(vec_matchings,
-                                                       w1,h1,w2,h2);
+  ModelEstimator* model = build_model<HomographyModel>(vec_matchings);
   double alpha0Left  = M_PI/(w1*(double)h1);
   double alpha0Right = M_PI/(w2*(double)h2);
   bool ok = generic_orsa(model, alpha0Left, alpha0Right, precision, nbIter,
@@ -221,8 +211,7 @@ bool orsa_fundamental(const std::vector<Match>& vec_matchings,
                       double precision, int nbIter,
                       libNumerics::matrix<double>& F,
                       std::vector<int>& vec_inliers) {
-  ModelEstimator* model = build_model<FundamentalModel>(vec_matchings,
-                                                        w1,h1,w2,h2);
+  ModelEstimator* model = build_model<FundamentalModel>(vec_matchings);
   double D, A; // Diameter and area of image
   D = sqrt(w1*(double)w1 + h1*(double)h1);
   A = w1*(double)h1;

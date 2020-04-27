@@ -22,6 +22,7 @@
  */
 
 #include "fundamental_model.hpp"
+#include "conditioning.hpp"
 #include "libNumerics/cubicRoots.h"
 #include "libNumerics/numerics.h"
 
@@ -35,10 +36,11 @@ namespace orsa {
 static const double MIN_PRODUCT_NORMS=1e-5;
 
 /// Constructor.
-FundamentalModel::FundamentalModel(const Mat &x1, int w1, int h1,
-                                   const Mat &x2, int w2, int h2,
-                                   bool symmetricError)
-: ModelEstimator(x1, w1, h1, x2, w2, h2, symmetricError) {}
+FundamentalModel::FundamentalModel(const Mat &x1, const Mat &x2, bool symError)
+: ModelEstimator(x1, x2, symError), N1_(3,3), N2_(3,3) {
+  PreconditionerFromPoints(x1, &N1_);
+  PreconditionerFromPoints(x2, &N2_);
+}
 
 /// Unnormalize a given model (from normalized to image space).
 void FundamentalModel::Unnormalize(Model * model) const  {

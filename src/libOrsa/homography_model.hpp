@@ -31,9 +31,7 @@ namespace orsa {
 /// Homography model used for robust estimation with ORSA algorithm.
 class HomographyModel : public ModelEstimator {
 public:
-  HomographyModel(const Mat &x1, int w1, int h1,
-                  const Mat &x2, int w2, int h2,
-                  bool symmetricError=false);
+  HomographyModel(const Mat &x1, const Mat &x2, bool symmetricError=false);
 
   /// 4 point correspondences required to compute a homography.
   int SizeSample() const { return  4; }
@@ -51,6 +49,7 @@ public:
   double Error(const Model &H, int index, int* side=0) const;
 
 private:
+  Mat N1_, N2_; ///< Normalization matrices
   void Unnormalize(Model *model) const;
   bool IsOrientationPreserving(const std::vector<int> &indices,
                                  const Mat& H) const;

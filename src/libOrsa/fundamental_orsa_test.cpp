@@ -53,7 +53,7 @@ TEST(Fundamental_Orsa, Test)
   x2(1, n - 1) = 10;
 
   /// Create the Kernel (Model estimator and tester)
-  orsa::FundamentalModel model(x1, 5, 5, x2, 5, 5);
+  orsa::FundamentalModel model(x1, x2);
   double D = sqrt(5*(double)5 + 5*(double)5); // Diameter
   double A = 5*(double)5; // Area
   double alpha0  = 2.0*D/A;

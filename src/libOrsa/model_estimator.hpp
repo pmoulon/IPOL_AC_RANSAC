@@ -53,8 +53,7 @@ class ModelEstimator {
   bool symError;
 
   /// Constructor
-  ModelEstimator(const Mat &x1, int w1, int h1,
-                 const Mat &x2, int w2, int h2, bool symmetricError=false);
+  ModelEstimator(const Mat &x1, const Mat &x2, bool symmetricError=false);
   virtual ~ModelEstimator() {}
 
   /// Number of data matches.
@@ -97,8 +96,6 @@ class ModelEstimator {
 protected:
   Mat x1_; ///< Points in image 1
   Mat x2_; ///< Points in image 2
-  Mat N1_; ///< Normalization for x1_
-  Mat N2_; ///< Normalization for x2_ 
 };
 
 }  // namespace orsa

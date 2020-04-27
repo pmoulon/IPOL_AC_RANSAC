@@ -22,28 +22,15 @@
  */
 
 #include "libOrsa/model_estimator.hpp"
-#include "libOrsa/conditioning.hpp"
 
 namespace orsa {
 
-/// An isotropic normalization according to image dimensions is proposed, but
-/// points remain unnormalized. Algorithms needing normalization for numerical
-/// robustness must take care of it by themselves.
 /// Matrices \a x1 and \a x2 are 2xn, representing Cartesian coordinates.
-ModelEstimator::ModelEstimator(const Mat &x1, int w1, int h1,
-                               const Mat &x2, int w2, int h2,
-                               bool symmetricError)
-: symError(symmetricError),
-  x1_(x1), x2_(x2), N1_(3,3), N2_(3,3) {
+ModelEstimator::ModelEstimator(const Mat &x1, const Mat &x2, bool symmetric)
+: symError(symmetric), x1_(x1), x2_(x2) {
   assert(2 == x1_.nrow());
   assert(x1_.nrow() == x2_.nrow());
   assert(x1_.ncol() == x2_.ncol());
-
-  // Normalize both images by same factor, as our thresholds for SVD are based
-  // on zoom around 1
-  int w=std::max(w1,w2), h=std::max(h1,h2);
-  PreconditionerFromPoints(w, h, &N1_);
-  PreconditionerFromPoints(w, h, &N2_);
 }
 
 /// If multiple solutions are possible, return false.
