@@ -388,6 +388,17 @@ matrix<T> cat(const matrix<T>& m1, const matrix<T>& m2)
     return m;
 }
 
+/// Concatenate matrices.
+template <typename T>
+matrix<T> stack(const matrix<T>& m1, const matrix<T>& m2)
+{
+    assert(m1.m_cols == m2.m_cols);
+    matrix<T> m(m1.m_rows+m2.m_rows, m1.m_cols);
+    m.paste(0, 0, m1);
+    m.paste(m1.m_rows, 0, m2);
+    return m;
+}
+
 /// Copy column number \a j.
 template <typename T>
 vector<T> matrix<T>::col(int j) const

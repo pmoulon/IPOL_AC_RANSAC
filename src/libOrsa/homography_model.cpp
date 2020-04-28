@@ -52,13 +52,13 @@ void MinMaxAvgRow(const ModelEstimator::Mat& A, int i,
 }
 
 /// Constructor.
-HomographyModel::HomographyModel(const Mat &x1, const Mat &x2, bool symError)
-: ModelEstimator(x1, x2, symError), N1_(3,3), N2_(3,3) {
+HomographyModel::HomographyModel(const std::vector<Match>& m, bool symError)
+: ModelEstimator(Match::toMat(m), symError), N1_(3,3), N2_(3,3) {
   double stat[12];
-  MinMaxAvgRow(x1, 0, stat[0], stat[1],  stat[2]);
-  MinMaxAvgRow(x1, 1, stat[3], stat[4],  stat[5]);
-  MinMaxAvgRow(x2, 0, stat[6], stat[7],  stat[8]);
-  MinMaxAvgRow(x2, 1, stat[9], stat[10], stat[11]);
+  MinMaxAvgRow(data_, 0, stat[0], stat[1],  stat[2]);
+  MinMaxAvgRow(data_, 1, stat[3], stat[4],  stat[5]);
+  MinMaxAvgRow(data_, 2, stat[6], stat[7],  stat[8]);
+  MinMaxAvgRow(data_, 3, stat[9], stat[10], stat[11]);
   // Normalize both images by same factor, as our thresholds for SVD are based
   // on zoom around 1
   double w = std::max(stat[1]-stat[0], stat[7] -stat[6]);
@@ -91,19 +91,19 @@ double HomographyModel::Error(const Model &H, int index, int* side) const {
   if(side) *side=1;
   libNumerics::vector<double> x(3);
   // Transfer error in image 2
-  x(0) = x1_(0,index); x(1) = x1_(1,index); x(2) = 1.0;
+  x(0) = data_(0,index); x(1) = data_(1,index); x(2) = 1.0;
   x = H * x;
   if(x(2)>0) {
     x /= x(2);
-    err = sqr(x2_(0,index)-x(0)) + sqr(x2_(1,index)-x(1));
+    err = sqr(data_(2,index)-x(0)) + sqr(data_(3,index)-x(1));
   }
   // Transfer error in image 1
   if(symError) { // ... but only if requested
-    x(0) = x2_(0,index); x(1) = x2_(1,index); x(2) = 1.0;
+    x(0) = data_(2,index); x(1) = data_(3,index); x(2) = 1.0;
     x = H.inv() * x;
     if(x(2)>0) {
       x /= x(2);
-      double err1 = sqr(x1_(0,index)-x(0)) + sqr(x1_(1,index)-x(1));
+      double err1 = sqr(data_(0,index)-x(0)) + sqr(data_(1,index)-x(1));
       if(err1>err) { // Keep worse error
         err=err1;
         if(side) *side=0;
@@ -123,8 +123,8 @@ void HomographyModel::Fit(const std::vector<int> &indices,
   for (int i = 0; i < n; ++i) {
     int j = indices[i];
     libNumerics::vector<double> x1(3), x2(3);
-    x1(0)=x1_(0,j); x1(1)=x1_(1,j); x1(2)=1;
-    x2(0)=x2_(0,j); x2(1)=x2_(1,j); x2(2)=1;
+    x1(0)=data_(0,j); x1(1)=data_(1,j); x1(2)=1;
+    x2(0)=data_(2,j); x2(1)=data_(3,j); x2(2)=1;
     x1 = N1_*x1;
     x2 = N2_*x2;
     j = 2*i;
@@ -168,7 +168,7 @@ bool HomographyModel::IsOrientationPreserving(const std::vector<int>&indices,
   libNumerics::matrix<double> h=H.row(2);
   std::vector<int>::const_iterator it=indices.begin(), end=indices.end();
   for(; it != end; ++it)
-    if(h(0)*x2_(0,*it)+h(1)*x2_(1,*it)+h(2) <= 0)
+    if(h(0)*data_(2,*it)+h(1)*data_(3,*it)+h(2) <= 0)
       return false;
   return true;
 }

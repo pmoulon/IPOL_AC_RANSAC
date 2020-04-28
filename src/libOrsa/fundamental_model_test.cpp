@@ -30,15 +30,13 @@ typedef libNumerics::matrix<double> Mat;
 //   2. The condition x'T*F*x = 0 is satisfied to precision.
 //
 bool ExpectFundamentalProperties(const Mat &F,
-                                 const Mat &ptsA,
-                                 const Mat &ptsB,
+                                 const std::vector<Match>& m,
                                  double precision) {
   bool bOk = true;
   bOk &= F.det() < precision;
   std::cout << std::endl << F << std::endl;
-  orsa::FundamentalModel model(ptsA, ptsB);
-  assert(ptsA.ncol() == ptsB.ncol());
-  for (int i = 0; i < ptsA.ncol(); ++i) {
+  orsa::FundamentalModel model(m);
+  for (int i = 0; i < model.NbData(); ++i) {
     double residual = model.Error(F,i);
     bOk &= residual < precision;
   }
@@ -51,46 +49,47 @@ bool ExpectFundamentalProperties(const Mat &F,
 //   2. Check epipolar distance.
 //
 template <class Kernel>
-bool ExpectKernelProperties(const Mat &x1, const Mat &x2) {
+bool ExpectKernelProperties(const std::vector<Match> &m) {
   bool bOk = true;
-  orsa::ModelEstimator* kernel = new Kernel(x1, x2);
+  orsa::ModelEstimator* kernel = new Kernel(m);
   std::vector<int> samples;
-  for (int i = 0; i < x1.ncol(); ++i) {
-    samples.push_back(i);
+  for (size_t i = 0; i < m.size(); ++i) {
+    samples.push_back(static_cast<int>(i));
   }
   std::vector<Mat> vec_F;
   kernel->Fit(samples, &vec_F);
   for (size_t i = 0; i  < vec_F.size(); ++i)
   {
-    bOk &= ExpectFundamentalProperties(vec_F[i], x1, x2, 1e-8);
+    bOk &= ExpectFundamentalProperties(vec_F[i], m, 1e-8);
   }  
   delete kernel;
   return bOk;
 }
 
 TEST(SevenPointTest, EasyCase) {
-  Mat x1(2, 7), x2(2, 7);
-  double points[] = { 0, 0, 0, 1, 1, 1, 2,
-                      0, 1, 2, 0, 1, 2, 0};
-  x1.read(points);
-  double points2[] = { 0, 0, 0, 1, 1, 1, 2,
-                       1, 2, 3, 1, 2, 3, 1};
-  x2.read(points2);
+  double points1[2*7] = { 0, 0, 0, 1, 1, 1, 2,
+                          0, 1, 2, 0, 1, 2, 0};
+  double points2[2*7] = { 0, 0, 0, 1, 1, 1, 2,
+                          1, 2, 3, 1, 2, 3, 1};
+  std::vector<Match> m(7);
+  for(int i=0; i<7; i++)
+      m[i] = Match(points1[i], points1[i+7], points2[i], points2[i+7]);
   typedef orsa::FundamentalModel Model;
-  CHECK(ExpectKernelProperties<Model>(x1, x2));
+  CHECK(ExpectKernelProperties<Model>(m));
 }
 
 TEST(SevenPointTest, RealCorrespondences) {
-  Mat x1(2, 7), x2(2, 7);
-  double points[] = { 723, 1091, 1691, 447,  971, 1903, 1483,
-                      887,  699,  811, 635,   91,  447, 1555};
-  x1.read(points);
-  double points2[] = { 1251, 1603, 2067, 787, 1355, 2163, 1875,
+  double points1[2*7] = { 723, 1091, 1691, 447,  971, 1903, 1483,
+                          887,  699,  811, 635,   91,  447, 1555};
+  double points2[2*7] = { 1251, 1603, 2067, 787, 1355, 2163, 1875,
                        1243,  923, 1031, 484,  363,  743, 1715};
-  x2.read(points2);
+
+  std::vector<Match> m(7);
+  for(int i=0; i<7; i++)
+      m[i] = Match(points1[i], points1[i+7], points2[i], points2[i+7]);
 
   typedef orsa::FundamentalModel Model;
-  CHECK(ExpectKernelProperties<Model>(x1, x2));
+  CHECK(ExpectKernelProperties<Model>(m));
 }
 
 /* ************************************************************************* */

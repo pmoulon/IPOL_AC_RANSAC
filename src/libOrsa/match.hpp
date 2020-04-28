@@ -15,6 +15,7 @@
 #ifndef MATCH_H
 #define MATCH_H
 
+#include "libNumerics/matrix.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -25,6 +26,23 @@ struct Match {
     Match(float ix1, float iy1, float ix2, float iy2)
     : x1(ix1), y1(iy1), x2(ix2), y2(iy2) {}
     float x1, y1, x2, y2;
+
+    /**
+    * Transform into matrix where each column is (x1 y1 x2 y2)^T.
+    * \param m The matches that we transform.
+    * \return Matrix 4xn where n is the size of vector \a m.
+    */
+    static libNumerics::matrix<double> toMat(const std::vector<Match>& m) {
+      libNumerics::matrix<double> M(4, static_cast<int>(m.size()));
+      std::vector<Match>::const_iterator it = m.begin();
+      for(int j=0; it!=m.end(); ++it, ++j) {
+        M(0,j) = it->x1;
+        M(1,j) = it->y1;
+        M(2,j) = it->x2;
+        M(3,j) = it->y2;
+      }
+      return M;
+    }
 
     /**
     * Load the corresponding matches from file.

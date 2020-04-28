@@ -25,6 +25,7 @@
 #define FUNDAMENTAL_MODEL_H_
 
 #include "model_estimator.hpp"
+#include "match.hpp"
 
 namespace orsa {
 
@@ -34,7 +35,7 @@ namespace orsa {
 /// The equation is \f$det(F_1 + \alpha F_2) = 0\f$.
 class FundamentalModel : public ModelEstimator {
 public:
-  FundamentalModel(const Mat &x1, const Mat &x2, bool symError=false);
+  FundamentalModel(const std::vector<Match> &m, bool symError=false);
 
   /// 7 points are required to compute a fundamental matrix.
   int SizeSample() const { return  7;}

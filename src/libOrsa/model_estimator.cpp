@@ -25,13 +25,9 @@
 
 namespace orsa {
 
-/// Matrices \a x1 and \a x2 are 2xn, representing Cartesian coordinates.
-ModelEstimator::ModelEstimator(const Mat &x1, const Mat &x2, bool symmetric)
-: symError(symmetric), x1_(x1), x2_(x2) {
-  assert(2 == x1_.nrow());
-  assert(x1_.nrow() == x2_.nrow());
-  assert(x1_.ncol() == x2_.ncol());
-}
+/// Matrix \a data is mxn, representing n datapoints of dimension m.
+ModelEstimator::ModelEstimator(const Mat &data, bool symmetric)
+: symError(symmetric), data_(data) {}
 
 /// If multiple solutions are possible, return false.
 bool ModelEstimator::ComputeModel(const std::vector<int> &indices,

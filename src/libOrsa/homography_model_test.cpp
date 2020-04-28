@@ -73,8 +73,11 @@ TEST(HomographyKernelTest, Fitting) {
     {
         libNumerics::TransformH(H_gt[i], y(0,k), y(1,k) );
     }
+    std::vector<Match> m(9);
+    for(int i=0; i<9; i++)
+        m[i] = Match(x(0,i), x(1,i), y(0,i), y(1,i));
 
-    orsa::HomographyModel kernel(x, y);
+    orsa::HomographyModel kernel(m);
 
     //-- Fit a model and check re-projection error.
     int samples_[5]={0,1,2,3,4};
@@ -83,7 +86,7 @@ TEST(HomographyKernelTest, Fitting) {
       Mat H(3,3);
       if(kernel.ComputeModel(samples, &H))
       {
-        EXPECT_MATRIX_NEAR(H_gt[i], H, 5e-8);
+        EXPECT_MATRIX_NEAR(H_gt[i], H, 5e-7);
         bFound = true;
       }
     }

@@ -33,6 +33,7 @@ template <typename T> class vector;
 template <typename T> class matrix;
 
 template <typename T> matrix<T> cat(const matrix<T>&, const matrix<T>&);
+template <typename T> matrix<T> stack(const matrix<T>&, const matrix<T>&);
 template <typename T> void swap(matrix<T>&, matrix<T>&);
 
 /// Matrix class
@@ -93,6 +94,7 @@ public:
     matrix<T> copyRows(int i0, int i1) const;
     void paste(int i0, int j0, const matrix<T>& block);
     friend matrix<T> cat<T>(const matrix<T>& left, const matrix<T>& right);
+    friend matrix<T> stack<T>(const matrix<T>& up, const matrix<T>& down);
     vector<T> col(int j) const; ///< Copy column.
     vector<T> row(int i) const; ///< Copy row.
     int lastCol() const {return m_cols-1;} ///< Index of last column.

@@ -36,10 +36,10 @@ namespace orsa {
 static const double MIN_PRODUCT_NORMS=1e-5;
 
 /// Constructor.
-FundamentalModel::FundamentalModel(const Mat &x1, const Mat &x2, bool symError)
-: ModelEstimator(x1, x2, symError), N1_(3,3), N2_(3,3) {
-  PreconditionerFromPoints(x1, &N1_);
-  PreconditionerFromPoints(x2, &N2_);
+FundamentalModel::FundamentalModel(const std::vector<Match>& m, bool symError)
+: ModelEstimator(Match::toMat(m), symError), N1_(3,3), N2_(3,3) {
+  PreconditionerFromPoints(data_.copyRows(0,1), &N1_);
+  PreconditionerFromPoints(data_.copyRows(2,3), &N2_);
 }
 
 /// Unnormalize a given model (from normalized to image space).
@@ -64,8 +64,8 @@ void FundamentalModel::EpipolarEquation(const std::vector<int> &indices,
   for (size_t i = 0; i < indices.size(); ++i) {
     int j = indices[i];
     libNumerics::vector<double> x1(3), x2(3);
-    x1(0)=x1_(0,j); x1(1)=x1_(1,j); x1(2)=1;
-    x2(0)=x2_(0,j); x2(1)=x2_(1,j); x2(2)=1;
+    x1(0)=data_(0,j); x1(1)=data_(1,j); x1(2)=1;
+    x2(0)=data_(2,j); x2(1)=data_(3,j); x2(2)=1;
     x1 = N1_*x1;
     x2 = N2_*x2;
     (*A)(i, 0) = x1(0) * x2(0);  // 0 represents x coords,
@@ -82,11 +82,6 @@ void FundamentalModel::EpipolarEquation(const std::vector<int> &indices,
 
 void FundamentalModel::Fit(const std::vector<int> &indices,
                            std::vector<Model> *Fs) const {
-  assert(2 == x1_.nrow());
-  assert(7 <= x1_.ncol());
-  assert(x1_.nrow() == x2_.nrow());
-  assert(x1_.ncol() == x2_.ncol());
-
   // Set up the homogeneous system Af = 0 from the equations x'T*F*x = 0.
   Mat A(indices.size(), 9);
   EpipolarEquation(indices, &A);
@@ -102,8 +97,8 @@ void FundamentalModel::Fit(const std::vector<int> &indices,
 /// \param side In which image is the error measured?
 /// \return The square reprojection error.
 double FundamentalModel::Error(const Model &F, int index, int* side) const {
-  double xa = x1_(0,index), ya = x1_(1,index);
-  double xb = x2_(0,index), yb = x2_(1,index);
+  double xa = data_(0,index), ya = data_(1,index);
+  double xb = data_(2,index), yb = data_(3,index);
 
   double a, b, c, d;
   // Transfer error in image 2
@@ -215,7 +210,7 @@ bool FundamentalModel::checkF(const Mat& F,
   std::vector<int>::const_iterator it=indices.begin();
   do {
     int j=*it;
-    Vec xL(x1_(0,j),x1_(1,j),1.0), xR(x2_(0,j),x2_(1,j),1.0);
+    Vec xL(data_(0,j),data_(1,j),1.0), xR(data_(2,j),data_(3,j),1.0);
     xL = N1_*xL;
     xR = N2_*xR;
     Vec exL = cross(e,xL);

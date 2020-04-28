@@ -24,14 +24,15 @@
 #ifndef HOMOGRAPHY_MODEL_H_
 #define HOMOGRAPHY_MODEL_H_
 
-#include "libOrsa/model_estimator.hpp"
+#include "model_estimator.hpp"
+#include "match.hpp"
 
 namespace orsa {
 
 /// Homography model used for robust estimation with ORSA algorithm.
 class HomographyModel : public ModelEstimator {
 public:
-  HomographyModel(const Mat &x1, const Mat &x2, bool symmetricError=false);
+  HomographyModel(const std::vector<Match>& m, bool symmetricError=false);
 
   /// 4 point correspondences required to compute a homography.
   int SizeSample() const { return  4; }

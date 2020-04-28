@@ -51,18 +51,7 @@ static std::pair<double,double> display_stats(const ModelEstimator& model,
 /// Generate a model estimator. Do not forget deletion.
 template <typename Model>
 ModelEstimator* build_model(const std::vector<Match>& vec_matchings) {
-  const int n = static_cast<int>( vec_matchings.size() );
-  libNumerics::matrix<double> xA(2,n), xB(2,n);
-
-  for (int i=0; i < n; ++i)
-  {
-    xA(0,i) = vec_matchings[i].x1;
-    xA(1,i) = vec_matchings[i].y1;
-    xB(0,i) = vec_matchings[i].x2;
-    xB(1,i) = vec_matchings[i].y2;
-  }
-
-  return new Model(xA, xB, true);
+  return new Model(vec_matchings, true);
 }
 
 /// Refine model based on all inliers, and display statistics.

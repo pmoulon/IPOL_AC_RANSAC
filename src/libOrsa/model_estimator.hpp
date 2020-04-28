@@ -39,7 +39,7 @@ namespace orsa {
 ///        Compute model(s) compatible with indexed correspondences.
 ///   5. Error(const Model &model, size_t index)
 ///        Reprojection square error for indexed correspondence.
-
+/// Points 2 and 3 are used only by ORSA, but they still need to be defined.
 class ModelEstimator {
  public:
   typedef libNumerics::matrix<double> Mat;
@@ -53,11 +53,11 @@ class ModelEstimator {
   bool symError;
 
   /// Constructor
-  ModelEstimator(const Mat &x1, const Mat &x2, bool symmetricError=false);
+  ModelEstimator(const Mat &data, bool symmetricError=false);
   virtual ~ModelEstimator() {}
 
   /// Number of data matches.
-  int NbData() const { return x1_.ncol(); }
+  int NbData() const { return data_.ncol(); }
 
   /// Compute model from points.
   bool ComputeModel(const std::vector<int> &indices, Model *model) const;
@@ -94,8 +94,7 @@ class ModelEstimator {
                    std::vector<Model> *models) const = 0;
 
 protected:
-  Mat x1_; ///< Points in image 1
-  Mat x2_; ///< Points in image 2
+  Mat data_; ///< Data to estimate a model
 };
 
 }  // namespace orsa

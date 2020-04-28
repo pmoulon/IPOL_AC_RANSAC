@@ -52,8 +52,12 @@ TEST(Fundamental_Orsa, Test)
   x2(0, n - 1) = 10;
   x2(1, n - 1) = 10;
 
+  std::vector<Match> m(n);
+  for(int i=0; i<n; i++)
+      m[i] = Match(x1(0,i), x1(1,i), x2(0,i), x2(1,i));
+  
   /// Create the Kernel (Model estimator and tester)
-  orsa::FundamentalModel model(x1, x2);
+  orsa::FundamentalModel model(m);
   double D = sqrt(5*(double)5 + 5*(double)5); // Diameter
   double A = 5*(double)5; // Area
   double alpha0  = 2.0*D/A;
