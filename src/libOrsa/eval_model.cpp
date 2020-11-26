@@ -135,6 +135,7 @@ bool ransac_homography(const std::vector<Match>& vec_matchings,
                        double precision, int nbIterMax, double beta,
                        libNumerics::matrix<double>& H,
                        std::vector<int>& vec_inliers) {
+  if(vec_matchings.empty()) return false;
   ModelEstimator* model = build_model<HomographyModel>(vec_matchings);
   bool ok = generic_ransac(model, precision, nbIterMax, beta, H, vec_inliers);
   delete model;
@@ -153,6 +154,7 @@ bool ransac_fundamental(const std::vector<Match>& vec_matchings,
                         double precision, int nbIterMax, double beta,
                         libNumerics::matrix<double>& F,
                         std::vector<int>& vec_inliers) {
+  if(vec_matchings.empty()) return false;
   ModelEstimator* model = build_model<FundamentalModel>(vec_matchings);
   bool ok = generic_ransac(model, precision, nbIterMax, beta, F, vec_inliers);
   delete model;
@@ -174,6 +176,7 @@ bool orsa_homography(const std::vector<Match>& vec_matchings,
                      double precision, int nbIter,
                      libNumerics::matrix<double>& F,
                      std::vector<int>& vec_inliers) {
+  if(vec_matchings.empty()) return false;
   ModelEstimator* model = build_model<HomographyModel>(vec_matchings);
   double alpha0Left  = M_PI/(w1*(double)h1);
   double alpha0Right = M_PI/(w2*(double)h2);
@@ -200,6 +203,7 @@ bool orsa_fundamental(const std::vector<Match>& vec_matchings,
                       double precision, int nbIter,
                       libNumerics::matrix<double>& F,
                       std::vector<int>& vec_inliers) {
+  if(vec_matchings.empty()) return false;
   ModelEstimator* model = build_model<FundamentalModel>(vec_matchings);
   double D, A; // Diameter and area of image
   D = sqrt(w1*(double)w1 + h1*(double)h1);
