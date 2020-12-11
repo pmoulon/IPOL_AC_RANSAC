@@ -27,7 +27,7 @@ SimpleString::SimpleString (const SimpleString& other)
 
 SimpleString SimpleString::operator= (const SimpleString& other)
 {
-	delete buffer;
+	delete[] buffer;
 	buffer = new char [other.size() + 1];
 	strcpy(buffer, other.buffer);	
 	return *this;
