@@ -1,23 +1,10 @@
+//SPDX-License-Identifier: LGPL-3.0-or-later
 /**
  * @file numerics.h
  * @brief Linear algebra: system solving by LU decomposition and SVD
  * @author Pascal Monasse
  * 
- * Copyright (c) 2010-2012 Pascal Monasse
- * All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (c) 2010-2012, 2024 Pascal Monasse
  */
 
 #ifndef NUMERICS_H
@@ -36,12 +23,15 @@ namespace libNumerics {
     /// Singular Value Decomposition: U diag(D) V, U in O(m), V in O(n), D>=0.
     class SVD {
     public:
-        SVD(const matrix<flnum>& A);
+        typedef int Mode;
+        static const Mode full=0x0, noU=0x1, noV=0x2, compact=0x4;
+        SVD(const matrix<flnum>& A, Mode mode=full);
         matrix<flnum> compose() const;
         flnum sv(int i) const;
 
         matrix<flnum> U, V;
         vector<flnum> D;
+        int iter; ///< Number of qrsteps iterations to compute SVD.
 
         typedef matrix<flnum> Mat;
         typedef vector<flnum> Vec;

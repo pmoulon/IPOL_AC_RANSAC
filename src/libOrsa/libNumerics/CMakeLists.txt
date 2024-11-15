@@ -1,22 +1,22 @@
-PROJECT(libNumerics)
+project(libNumerics)
 
-SET(SRC 
-        cubicRoots.h
-        ccmath_svd.cpp
-        homography.h
-        matrix.cpp matrix.h
-        numerics.cpp numerics.h
-        vector.cpp)
+set(SRC 
+    cubicRoots.h
+    homography.h
+    matrix.cpp matrix.h
+    numerics.cpp numerics.h
+    svd.cpp
+    vector.cpp)
 
-ADD_LIBRARY(Numerics ${SRC})
+add_library(Numerics ${SRC})
 
-IF(UNIX)
-    SET_TARGET_PROPERTIES(Numerics PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
-ENDIF(UNIX)
+if(UNIX)
+    set_target_properties(Numerics PROPERTIES
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
+endif()
 
 #----------
 # UNIT TEST
 #----------
 UNIT_TEST(cubicRoots Numerics)
-UNIT_TEST(ccmath_svd Numerics)
+UNIT_TEST(svd Numerics)

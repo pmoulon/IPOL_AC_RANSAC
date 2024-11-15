@@ -31,11 +31,11 @@ TARGET_LINK_LIBRARIES(demo_orsa_homography Orsa image SiftAnatomy)
 
 IF(UNIX)
     SET_TARGET_PROPERTIES(demo_orsa_fundamental PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
     SET_TARGET_PROPERTIES(put_epipolar PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
     SET_TARGET_PROPERTIES(demo_orsa_homography PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
 ENDIF(UNIX)
 
 # Show small epipolar lines

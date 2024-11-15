@@ -1,23 +1,9 @@
 /**
- * @file cc_math_svd_test.cpp
+ * @file svd_test.cpp
  * @brief SVD test
  * @author Pascal Monasse
  * 
- * Copyright (c) 2010 Pascal Monasse
- * All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (c) 2010, 2024 Pascal Monasse
  */
 
 #include "numerics.h"
@@ -25,6 +11,7 @@
 
 static const int NTESTS=100;
 static const double EPS=1E-5;
+static const int SIZE_MAX=50;
 
 #define EXPECT_MATRIX_NEAR(a, b, tolerance) \
 do { \
@@ -60,8 +47,8 @@ TEST(SVDTest, Decomposition) {
   //--
 
     for(int k=0; k<NTESTS; k++) {
-        int m=1+rand()%50;
-        int n=1+rand()%50;
+        int m=1+rand()%SIZE_MAX;
+        int n=1+rand()%SIZE_MAX;
         libNumerics::matrix<double> A(m,n);
         for(int i=0; i<m; i++)
             for(int j=0; j<n; j++)
@@ -76,6 +63,17 @@ TEST(SVDTest, Decomposition) {
             std::cout << "D=" << svd.D << std::endl;
             std::cout << "V=" << svd.V << std::endl;
         }
+        EXPECT_MATRIX_NEAR(A, B, EPS);
+
+        libNumerics::SVD svd2(A, libNumerics::SVD::compact);
+        B = svd2.compose();
+        if(! err > EPS) {
+            std::cout << "U=" << svd2.U << std::endl;
+            std::cout << "D=" << svd2.D << std::endl;
+            std::cout << "V=" << svd2.V << std::endl;
+            std::cout << "compact -> FAILURE" << std::endl;
+        }
+        std::cout << k << ": (compact) " << m<<'x'<<n << "  " << err<<std::endl;
         EXPECT_MATRIX_NEAR(A, B, EPS);
     }
 }
