@@ -1,23 +1,8 @@
+//SPDX-License-Identifier: LGPL-3.0-or-later
 /**
  * @file numerics.cpp
  * @brief Linear algebra basics
  * @author Pascal Monasse, Pierre Moulon
- * 
- * Copyright (c) 2010-2012 Pascal Monasse, Pierre Moulon
- * All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "numerics.h"
@@ -106,18 +91,24 @@ bool solveLU(matrix<flnum> A, vector<flnum>& X)
 }
 
 /// Decompose A into U diag(D) V^T with U(m,m) and V(n,n) orthonormal matrices.
-SVD::SVD(const matrix<flnum>& A)
-: U(A.nrow(),A.nrow()), V(A.ncol(),A.ncol()), D(std::min(A.nrow(),A.ncol()))
+SVD::SVD(const matrix<flnum>& A, SVD::Mode mode)
+: U(), V(), D(std::min(A.nrow(),A.ncol())), iter(0)
 {
+    int p = std::min(A.nrow(),A.ncol());
+    if((mode & noU) == 0)
+        U = matrix<flnum>(A.nrow(), (mode & compact)? p: A.nrow());
+    if((mode & noV) == 0)
+        V = matrix<flnum>(A.ncol(), (mode & compact)? p: A.ncol());
     D.fill(0);
-    A.SVD(U, D, V);
+    iter = A.SVD(U, D, V);
     sort();
 }
 
-/// Recompose from SVD. This should be the initial matrix.
+/// Recompose from SVD. This should be the initial matrix, except if U or V
+/// was not computed, in which case a 0x0 matrix is returned..
 matrix<flnum> SVD::compose() const
 {
-    return U * D.diag(U.ncol(), V.nrow()) * V.t();
+    return U * D.diag(U.ncol(), V.ncol()) * V.t();
 }
 
 /// Return ith greathest singular value. It is safer than picking directly in D
@@ -150,21 +141,25 @@ void SVD::sort()
         vec.push_back( SVDElement(D, i) );
     std::sort(vec.begin(), vec.end());
     // Apply permutation
-    for(int i=std::min(U.ncol(),V.ncol())-1; i >=0; i--)
+    for(int i=D.nrow()-1; i >=0; i--)
         if(vec[i].m_i != i) { // Find cycle of i
-            const vector<flnum> colU = U.col(i);
-            const vector<flnum> colV = V.col(i);
+            vector<flnum> colU; if(U.nElements()) colU = U.col(i);
+            vector<flnum> colV; if(V.nElements()) colV = V.col(i);
             const flnum w = D(i);
             int j = i;
             while(vec[j].m_i != i) {
-                U.paste(0,j, U.col(vec[j].m_i));
-                V.paste(0,j, V.col(vec[j].m_i));
+                if(U.nElements())
+                    U.paste(0,j, U.col(vec[j].m_i));
+                if(V.nElements())
+                    V.paste(0,j, V.col(vec[j].m_i));
                 D(j) = D(vec[j].m_i);
                 std::swap(j,vec[j].m_i);
             }
             vec[j].m_i = j;
-            U.paste(0,j, colU);
-            V.paste(0,j, colV);
+            if(U.nElements())
+                U.paste(0,j, colU);
+            if(V.nElements())
+                V.paste(0,j, colV);
             D(j) = w;
         }
 }
@@ -178,7 +173,7 @@ bool SVD::Nullspace(const Mat& A, Vec *nullspace,
 {
     if(A.nrow()+1<A.ncol()) // rank<n-1
         return false;
-    libNumerics::SVD svd(A);
+    SVD svd(A, SVD::noU);
     int last=A.lastCol();
     assert(last>=1);
     flnum minSV1=std::max(svd.sv(last),
@@ -196,7 +191,7 @@ bool SVD::Nullspace(const Mat& A, Vec *nullspace,
 /// Inverse of norm-2 condition value (ratio of extreme singular values)
 flnum SVD::InvCond(const Mat& A) {
     assert(A.nrow()==A.ncol());
-    libNumerics::SVD svd(A);
+    SVD svd(A, SVD::noU | SVD::noV);
     return svd.D(svd.D.lastRow())/svd.D(0);
 }
 
@@ -214,7 +209,7 @@ void SVD::Nullspace2_Remap33(const Mat &A, Mat& f1, Mat& f2) {
     assert(A.ncol()==9);
     assert(f1.nrow()==3 && f1.ncol()==3);
     assert(f2.nrow()==3 && f2.ncol()==3);      
-    libNumerics::SVD svd(A);
+    SVD svd(A, SVD::noU);
     f1.read( svd.V.col(svd.V.lastCol()-1) );
     f2.read( svd.V.col(svd.V.lastCol()) );
 }

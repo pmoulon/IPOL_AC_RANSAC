@@ -1,23 +1,10 @@
+//SPDX-License-Identifier: LGPL-3.0-or-later
 /**
  * @file matrix.h
  * @brief Linear algebra basics
  * @author Pascal Monasse
  * 
- * Copyright (c) 2010 Pascal Monasse
- * All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (c) 2010, 2024 Pascal Monasse
  */
 
 #ifndef MATRIX_H
@@ -41,13 +28,14 @@ template <typename T>
 class matrix
 {
 public:
-    static matrix<T> zeros(int m) { return zeros(m,m); }
     static matrix<T> zeros(int m, int n);
-    static matrix<T> ones(int m) { return ones(m,m); }
+    static matrix<T> zeros(int m) { return zeros(m,m); }
     static matrix<T> ones(int m, int n);
+    static matrix<T> ones(int m) { return ones(m,m); }
     static matrix<T> eye(int n); ///< Identity matrix.
 
 public:
+    matrix();
     matrix(int m, int n);
     matrix(const matrix<T>& m);
     virtual ~matrix();
@@ -55,6 +43,7 @@ public:
 
     int nrow() const { return m_rows; } ///< The number of rows.
     int ncol() const { return m_cols; } ///< The number of columns.
+    int nElements() const; ///< Number of elements in the matrix.
     T  operator() (int i, int j) const;
     T& operator() (int i, int j);
     T  operator() (int i) const;
@@ -87,7 +76,7 @@ public:
     void symUpper();
     void symLower();
 
-    void SVD(matrix<T>& U, vector<T>& S, matrix<T>& V) const;
+    int SVD(matrix<T>& U, vector<T>& S, matrix<T>& V) const;
 
     matrix<T> copy(int i0, int i1, int j0, int j1) const;
     matrix<T> copyCols(int j0, int j1) const;
@@ -117,7 +106,6 @@ protected:
 
     void alloc(int m, int n); ///< Allocate the array value.
     void free(); ///< Free the array value.
-    int nElements() const; ///< Number of elements in the matrix.
     matrix<T>& sub(matrix<T>& s, int i, int j) const;
 }; // class matrix
 
@@ -126,6 +114,7 @@ template <typename T>
 class vector : public matrix<T>
 {
 public:
+    vector();
     explicit vector(int m);
     explicit vector(T x);
     vector(T x, T y);
@@ -159,12 +148,17 @@ template <typename T>
 inline std::ostream& operator<<(std::ostream& out,
                                 const libNumerics::matrix<T>& m)
 {
-    for(int i = 0; i < m.nrow(); ++i) {
-        out << ((i==0)? "[": "; ");
-        for (int j = 0; j < m.ncol(); ++j)
-            out << " " << m(i,j);
+    out << "["; 
+    for(int i=0; i < m.nrow(); ++i) {
+        if(i>0)
+            out << "; ";
+        for(int j=0; j < m.ncol(); ++j) {
+            if(j>0)
+                out << " ";
+            out << m(i,j);
+        }
     }
-    out << " ]";
+    out << "]";
     return out;
 }
 

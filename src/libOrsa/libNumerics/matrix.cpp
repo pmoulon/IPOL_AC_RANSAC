@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: LGPL-3.0-or-later
 /**
  * @file matrix.cpp
  * @brief Linear algebra basics
@@ -5,29 +6,23 @@
  * 
  * Copyright (c) 2010 Pascal Monasse
  * All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef MATRIX_H // Do nothing if not included from matrix.h
 
-// SVD handled by code from ccmath
-#include "ccmath_svd.cpp"
+// SVD deserves its own file!
+#include "svd.cpp"
 
 #define INDEX(i,j) ((i) * m_cols + (j))
 
 namespace libNumerics {
+
+/// Empty matrix (size 0x0).
+template <typename T>
+matrix<T>::matrix()
+{
+    alloc(0,0);
+}
 
 /// Constructor for \a m*\a n matrix.
 /// \param m number of rows.
@@ -201,6 +196,8 @@ template <typename T>
 matrix<T> matrix<T>::operator*(const matrix<T>& m) const
 {
     assert(m_cols == m.m_rows);
+    if(m_cols == 0)
+        return matrix<T>(); // Empty matrix
     matrix<T> prod(m_rows, m.m_cols);
     T* out = prod.p;
     for(int i = 0; i < prod.m_rows; i++) {
@@ -483,6 +480,7 @@ template <typename T> template <typename U>
 inline void matrix<T>::read(const matrix<U>& m)
 {
     assert(m.nrow()*m.ncol()==nElements());
+    if(nElements() == 0) return;
     T* out = p+nElements()-1;
     for(int i=m.nrow()-1; i >= 0; i--)
         for(int j=m.ncol()-1; j >= 0; j--)
@@ -502,10 +500,10 @@ void matrix<T>::write(T* vect) const
 template <typename T>
 void matrix<T>::alloc(int m, int n)
 {
-    assert(m > 0 && n > 0);  
+    assert(m >= 0 && n >= 0);  
     m_rows = m;
     m_cols = n;
-    p = new T[m*n];
+    p = nElements()? new T[m*n]: 0;
 }
 
 template <typename T>
@@ -561,6 +559,8 @@ template <typename T>
 T matrix<T>::det() const
 {
     assert(m_rows == m_cols);
+    if(m_rows == 0)
+        return 0;
     if(m_rows == 1)
         return p[0];
     if(m_rows == 2)
@@ -583,7 +583,7 @@ matrix<T> matrix<T>::inv() const
     matrix<T> res(m_rows, m_cols);
     if(m_rows == 1)
         res.p[0] = (T)1/p[0];
-    else {
+    else if(m_rows != 0) {
         T d = (T)1 / det();
         T signi = (T)1;
         T* out = res.p;
@@ -600,19 +600,25 @@ matrix<T> matrix<T>::inv() const
     return res;
 }
 
-/// Singular Value Decomposition
+/// Singular Value Decomposition, return number of qrstep iterations.
+/// If A is mxn, let p=min(m,n).
+/// S is pxp.
+/// U can be mxm, mxp (compact) or 0x0 (means not desired).
+/// V can be nxn, nxp (compact) or 0x0 (means not desired).
 template <typename T>
-void matrix<T>::SVD(matrix<T>& U, vector<T>& S, matrix<T>& V) const {
-    assert(U.m_rows==m_rows && U.m_cols==m_rows);
-    assert(S.m_rows==m_rows || S.m_rows==m_cols);
-    assert(V.m_rows==m_cols && V.m_cols==m_cols);
+int matrix<T>::SVD(matrix<T>& U, vector<T>& S, matrix<T>& V) const {
+    int p = std::min(m_rows, m_cols);
+    assert(U.nElements()==0 ||
+           (U.m_rows==m_rows && (U.m_cols==m_rows || U.m_cols==p)));
+    assert(S.m_rows==p);
+    assert(V.nElements()==0 ||
+           (V.m_rows==m_cols && (V.m_cols==m_cols || V.m_cols==p)));
     if(m_rows>=m_cols) {
         matrix<T> A(*this);
-        (void)svd(S.p, A.p, U.p, A.nrow(), V.p, A.ncol());
-    } else {
-        matrix<T> A(this->t());
-        (void)svd(S.p, A.p, V.p, A.nrow(), U.p, A.ncol());
+        return svd(A.p, A.nrow(), A.ncol(), S.p, U.p, U.ncol(), V.p);
     }
+    matrix<T> A(this->t());
+    return svd(A.p, A.nrow(), A.ncol(), S.p, V.p, V.ncol(), U.p);
 }
 
 } // namespace libNumerics

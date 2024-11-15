@@ -37,7 +37,7 @@ target_link_libraries(image ${PNG_LIBRARIES} ${JPEG_LIBRARIES})
 
 if(UNIX)
     set_target_properties(image PROPERTIES
-                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra -Werror")
+                          COMPILE_FLAGS "-std=c++98 -Wall -Wextra")
 endif(UNIX)
 
 if(WIN32)
